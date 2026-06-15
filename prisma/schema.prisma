@@ -1,0 +1,48 @@
+// Prisma-Schema für bada bup — Phase 1 (bewusst minimal).
+// Achsen, Anerkennung, Tags, echtes Login folgen in späteren Phasen.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CaseStatus {
+  OPEN
+  ANSWERED
+  RESOLVED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  role      String // z. B. "Arbeitsmediziner:in"
+  createdAt DateTime @default(now())
+  cases     Case[]
+  answers   Answer[]
+}
+
+model Case {
+  id          String     @id @default(cuid())
+  title       String
+  setting     String?
+  body        String
+  status      CaseStatus @default(OPEN)
+  isPseudonym Boolean    @default(false) // Frage darf pseudonym sein
+  author      User       @relation(fields: [authorId], references: [id])
+  authorId    String
+  answers     Answer[]
+  createdAt   DateTime   @default(now())
+}
+
+model Answer {
+  id        String   @id @default(cuid())
+  body      String
+  case      Case     @relation(fields: [caseId], references: [id])
+  caseId    String
+  author    User     @relation(fields: [authorId], references: [id]) // immer namentlich
+  authorId  String
+  createdAt DateTime @default(now())
+}
