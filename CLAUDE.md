@@ -48,9 +48,42 @@ Tests für Schleifenlogik und Berechtigungen, sobald die da sind.
   Schema lebt in derselben Neon-DB, die auch Vercel nutzt → kein Migrate im Build nötig.
 - **Build**: `postinstall` ruft `prisma generate` (auch auf Vercel). `DATABASE_URL`
   muss in Vercel gesetzt sein, sonst schlägt schon `prisma generate` fehl (env() in config).
+- **Vercel-Env-Var setzen**: NICHT editieren (speichert die Maskierungs-`****` als Wert) —
+  immer löschen + neu anlegen. Sonst `28P01 password authentication failed`.
+- **EU-Region (Art. 9)**: Vercel-Funktionen auf `fra1` (Frankfurt) festnageln — Default ist USA.
 - **Schrift**: System-Font-Stack statt `next/font/google` (offline-/build-robust, datensparsam).
 - **Repo**: GitHub `mtmed/mgt` (Branch `main`). Hosting: Vercel.
 - `.env` (mit `DATABASE_URL`) ist gitignored; in Vercel als Env-Var pflegen.
+
+---
+
+## Verbindliche Design-Spec
+`DESIGN_DECISIONS.md` ist die **einzige Quelle der Wahrheit** für Design, Wording und
+Verhalten; `CLAUDE_CODE_BRIEF.md` ist der Arbeitsauftrag. Vor Code IMMER lesen. Lücken =
+§10 (offene Punkte): **nachfragen statt entscheiden**. Identität/Zugang im MVP:
+**manuelle Freischaltung durch einen Menschen** — kein automatisches Verifizierungssystem.
+
+### §1 Grundprinzipien (steuern alles)
+1. **Eine Schleife, gesehen.** Anerkennung fließt durch dieselbe Handlung, die Wissen
+   schafft. Belohne Hilfe, nicht Applaus. Keine Likes, keine Engagement-Köder, keine Vanity-Metriken.
+2. **Farbsemantik — jede Farbe genau eine Bedeutung:**
+   - **Gelb** = *verdiente menschliche Anerkennung* (`würde ich genauso machen`, `gelöst`).
+     Reserviert. Nie dekorativ, nie im Pause-Register.
+   - **Kobalt / neutral** = *Fakt & Struktur* (Quelle, Typ-Labels, Navigation, Divergenz-Hinweis).
+   - **Terrakotta** = *Pause-Register* (das Leichte, Menschliche).
+3. **Anerkennung wird aggregiert** und als qualitatives **Band** gezeigt (§5a), nie als
+   individueller Score und nie namentlich — „viele Kolleg:innen“, **nicht wer**, **nicht wie viele genau**.
+4. **Fragen pseudonym möglich, Antworten immer namentlich.**
+5. **Im Pause-Register: kein Gelb, keine Zahl.** Nur Gesichter.
+6. **Avatare aus vielfältiger Hauttonpalette** — nie ein einzelner „Flesh“-Ton.
+
+### §8 Wording-Glossar (kanonisch ✅ / verworfen ❌)
+- `würde ich genauso machen` ✅ — ❌ „mache ich auch so“, „fachlich bestätigt“
+- `Quelle` ✅ — ❌ „belegt“
+- `Tag / Fach / Pause` ✅ — ❌ „Gemischt“
+- `gelöst` ✅ — ❌ „erledigt“, „beantwortet“
+- `Input holen / Input geben` ✅ — ❌ technische Typennamen im UI
+- `haben geschmunzelt` ✅ — ❌ „gefällt mir“, „👍“
 
 ---
 
