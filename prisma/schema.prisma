@@ -1,5 +1,6 @@
-// Prisma-Schema für bada bup — Phase 1 (bewusst minimal).
-// Achsen, Anerkennung, Tags, echtes Login folgen in späteren Phasen.
+// Prisma-Schema für bada bup — Kernschleife (DESIGN_DECISIONS.md).
+// Bezeichner englisch, UI deutsch. Register (Fach/Pause) und Typ (Fall/Info)
+// werden aus `intent` abgeleitet — nicht redundant gespeichert.
 
 generator client {
   provider = "prisma-client-js"
@@ -9,40 +10,96 @@ datasource db {
   provider = "postgresql"
 }
 
-enum CaseStatus {
-  OPEN
-  ANSWERED
-  RESOLVED
+enum Intent {
+  SEEK // Input holen (Frage/Fall) — Fach-Register, als gelöst markierbar
+  GIVE // Input geben (Info)       — Fach-Register, kann Quelle tragen
+  PAUSE // Pause                    — Pause-Register, kein Gelb, keine Zahl
+}
+
+enum PostStatus {
+  OPEN // offen
+  SOLVED // gelöst (setzt nur der/die Fragende)
+}
+
+enum SourceRelation {
+  MATCHES // deckt sich
+  EXCEEDS // geht darüber hinaus
+  DIVERGES // weicht bewusst ab (Grund Pflicht)
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  role      String // z. B. "Arbeitsmediziner:in"
-  createdAt DateTime @default(now())
-  cases     Case[]
-  answers   Answer[]
+  id             String          @id @default(cuid())
+  name           String
+  role           String // z. B. "Arbeitsmediziner:in"
+  approved       Boolean         @default(false) // manuelle Freischaltung (MVP)
+  createdAt      DateTime        @default(now())
+  posts          Post[]
+  answers        Answer[]
+  endorsements   Endorsement[]
+  pauseReactions PauseReaction[]
 }
 
-model Case {
-  id          String     @id @default(cuid())
-  title       String
-  setting     String?
-  body        String
-  status      CaseStatus @default(OPEN)
-  isPseudonym Boolean    @default(false) // Frage darf pseudonym sein
-  author      User       @relation(fields: [authorId], references: [id])
-  authorId    String
-  answers     Answer[]
-  createdAt   DateTime   @default(now())
+model Post {
+  id             String          @id @default(cuid())
+  intent         Intent
+  status         PostStatus      @default(OPEN)
+  isPseudonym    Boolean         @default(false) // nur bei SEEK erlaubt
+  text           String
+  author         User            @relation(fields: [authorId], references: [id])
+  authorId       String
+  answers        Answer[]
+  endorsements   Endorsement[]
+  sources        Source[]
+  pauseReactions PauseReaction[]
+  createdAt      DateTime        @default(now())
 }
 
 model Answer {
+  id           String        @id @default(cuid())
+  text         String
+  post         Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId       String
+  author       User          @relation(fields: [authorId], references: [id]) // immer namentlich
+  authorId     String
+  endorsements Endorsement[]
+  createdAt    DateTime      @default(now())
+}
+
+// „würde ich genauso machen" — Ziel ist ein Info-Post ODER eine Answer.
+// NUR aggregiert auslesen (Konsens-Band), nie namentlich.
+model Endorsement {
   id        String   @id @default(cuid())
-  body      String
-  case      Case     @relation(fields: [caseId], references: [id])
-  caseId    String
-  author    User     @relation(fields: [authorId], references: [id]) // immer namentlich
-  authorId  String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String?
+  answer    Answer?  @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  answerId  String?
   createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@unique([userId, answerId])
+}
+
+model Source {
+  id        String         @id @default(cuid())
+  post      Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  title     String
+  url       String? // optionaler Link
+  relation  SourceRelation
+  reason    String? // Pflicht bei DIVERGES (in der Validierung erzwungen)
+  createdAt DateTime       @default(now())
+}
+
+// „haben geschmunzelt" — Gesichter, keine Zahl, kein Gelb. Off the record.
+model PauseReaction {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
 }

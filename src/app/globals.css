@@ -1,11 +1,45 @@
 @import "tailwindcss";
 
-@theme inline {
+/* Design-Tokens — DESIGN_DECISIONS.md §2. Farbsemantik ist hart:
+   Gelb = verdiente Anerkennung · Kobalt = Fakt/Struktur · Terrakotta = Pause. */
+@theme {
+  --color-kobalt: #1e46e0; /* Held: Text, Struktur, Navigation, Fach-Akzent */
+  --color-eisblau: #c7d6ff; /* Fläche, Avatar-Tints, Fach-Support */
+  --color-kreme: #fbf6ec; /* Standard-Hintergrund (warm, nicht Weiß) */
+  --color-gelb: #ffc21f; /* Funke: verdiente Anerkennung */
+  --color-ink: #15233b; /* Primärtext */
+  --color-muted: #6b7280; /* Sekundärtext */
+
+  --color-terra: #be6b4a; /* Pause-Akzent */
+  --color-terra-deep: #8a4326; /* Pause-Text auf hellem Grund */
+  --color-sand: #fdf5ee; /* Pause-Kartenfläche */
+  --color-sand-warm: #f6e7d8; /* erwärmter Hintergrund bei aktivem Pause-Tab */
+
+  --color-bg-fach: #fbf8f1; /* Hintergrund bei aktivem Fach-Tab */
+  --color-card-fach: #ffffff; /* Fach-Kartenfläche */
+  --color-border-soft: #e7e2d6; /* Kartenrand */
+  --color-border-pause: #e4c3b2; /* gestrichelter Rand Pause-Karte */
+
+  --color-chip-neutral-bg: #edf0f5;
+  --color-chip-neutral-fg: #44506a;
+  --color-chip-quelle-bg: #e8eefc;
+  --color-chip-quelle-bd: #c9d8f7;
+  --color-chip-pause-bg: #f2ddd1;
+  --color-diverg-bg: #f3f6fe;
+  --color-diverg-bd: #c9d8f7;
+  --color-diverg-fg: #2c3e63;
+
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 body {
   font-family: var(--font-sans);
+  background: var(--color-kreme);
+  color: var(--color-ink);
+}
+
+/* Weiche Erwärmung der Fläche beim Wechsel ins Pause-Register (§3). */
+.surface-transition {
+  transition: background-color 0.5s ease;
 }

@@ -1,33 +1,27 @@
 import { z } from "zod";
 
-// Validierungsschemata für die Schleifen-Eingaben.
-// Fehlermeldungen auf Deutsch (UI-Sprache).
+// Validierung der Schleifen-Eingaben. Fehlermeldungen deutsch (UI-Sprache).
 
-export const createCaseSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(5, "Bitte gib einen aussagekräftigen Titel ein (mind. 5 Zeichen).")
-    .max(160, "Der Titel ist zu lang (max. 160 Zeichen)."),
-  setting: z
-    .string()
-    .trim()
-    .max(120, "Das Setting ist zu lang (max. 120 Zeichen).")
-    .optional()
-    .transform((v) => (v === "" ? undefined : v)),
-  body: z
-    .string()
-    .trim()
-    .min(10, "Bitte beschreibe den Fall etwas ausführlicher (mind. 10 Zeichen)."),
-});
+export const createPostSchema = z
+  .object({
+    intent: z.enum(["SEEK", "GIVE", "PAUSE"]),
+    text: z
+      .string()
+      .trim()
+      .min(10, "Bitte schreibe etwas mehr (mind. 10 Zeichen).")
+      .max(4000, "Das ist zu lang (max. 4000 Zeichen)."),
+    isPseudonym: z.boolean().default(false),
+  })
+  // Pseudonym ist nur beim „Input holen" (SEEK) erlaubt.
+  .transform((v) => ({
+    ...v,
+    isPseudonym: v.intent === "SEEK" ? v.isPseudonym : false,
+  }));
 
 export const createAnswerSchema = z.object({
-  caseId: z.string().min(1, "Fehlende Fall-Referenz."),
-  body: z
-    .string()
-    .trim()
-    .min(2, "Die Antwort ist zu kurz."),
+  postId: z.string().min(1, "Fehlende Beitrags-Referenz."),
+  text: z.string().trim().min(2, "Die Antwort ist zu kurz."),
 });
 
-export type CreateCaseInput = z.infer<typeof createCaseSchema>;
+export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type CreateAnswerInput = z.infer<typeof createAnswerSchema>;

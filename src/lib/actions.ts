@@ -2,75 +2,131 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { getDemoUser } from "@/lib/demo-user";
-import { createAnswerSchema, createCaseSchema } from "@/lib/validation";
+import { getCurrentUser, SEED_USERS, USER_COOKIE } from "@/lib/users";
+import { createAnswerSchema, createPostSchema } from "@/lib/validation";
 
-// Rückgabeform für Formular-Fehler (wird via useActionState in der UI gezeigt).
-export type FormState = {
-  error?: string;
-};
+export type FormState = { error?: string };
 
-export async function createCase(
-  _prevState: FormState,
+export async function createPost(
+  _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const parsed = createCaseSchema.safeParse({
-    title: formData.get("title"),
-    setting: formData.get("setting"),
-    body: formData.get("body"),
+  const parsed = createPostSchema.safeParse({
+    intent: formData.get("intent"),
+    text: formData.get("text"),
+    isPseudonym: formData.get("isPseudonym") === "on",
   });
-
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Ungültige Eingabe." };
   }
 
-  const author = await getDemoUser();
-
-  const created = await prisma.case.create({
+  const author = await getCurrentUser();
+  const post = await prisma.post.create({
     data: {
-      title: parsed.data.title,
-      setting: parsed.data.setting,
-      body: parsed.data.body,
+      intent: parsed.data.intent,
+      text: parsed.data.text,
+      isPseudonym: parsed.data.isPseudonym,
       authorId: author.id,
     },
   });
 
   revalidatePath("/");
-  redirect(`/cases/${created.id}`);
+  redirect(`/posts/${post.id}`);
 }
 
 export async function createAnswer(
-  _prevState: FormState,
+  _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const parsed = createAnswerSchema.safeParse({
-    caseId: formData.get("caseId"),
-    body: formData.get("body"),
+    postId: formData.get("postId"),
+    text: formData.get("text"),
   });
-
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Ungültige Eingabe." };
   }
 
-  const author = await getDemoUser();
+  const author = await getCurrentUser(); // Antworten immer namentlich
+  await prisma.answer.create({
+    data: {
+      text: parsed.data.text,
+      postId: parsed.data.postId,
+      authorId: author.id,
+    },
+  });
 
-  await prisma.$transaction([
-    prisma.answer.create({
-      data: {
-        body: parsed.data.body,
-        caseId: parsed.data.caseId,
-        authorId: author.id,
-      },
-    }),
-    // Sobald eine Antwort existiert, gilt der Fall als beantwortet.
-    prisma.case.updateMany({
-      where: { id: parsed.data.caseId, status: "OPEN" },
-      data: { status: "ANSWERED" },
-    }),
-  ]);
-
-  revalidatePath(`/cases/${parsed.data.caseId}`);
+  revalidatePath(`/posts/${parsed.data.postId}`);
   revalidatePath("/");
   return {};
+}
+
+// „würde ich genauso machen" — Toggle auf einen Info-Post ODER eine Answer.
+export async function toggleEndorsement(
+  target: { postId?: string; answerId?: string },
+  redirectPostId: string,
+): Promise<void> {
+  const user = await getCurrentUser();
+  const where = target.postId
+    ? { userId_postId: { userId: user.id, postId: target.postId } }
+    : { userId_answerId: { userId: user.id, answerId: target.answerId! } };
+
+  const existing = await prisma.endorsement.findUnique({ where });
+  if (existing) {
+    await prisma.endorsement.delete({ where: { id: existing.id } });
+  } else {
+    await prisma.endorsement.create({
+      data: { userId: user.id, ...target },
+    });
+  }
+
+  revalidatePath(`/posts/${redirectPostId}`);
+}
+
+// „gelöst" — darf NUR der/die Fragende setzen (§5).
+export async function markSolved(postId: string): Promise<void> {
+  const user = await getCurrentUser();
+  const post = await prisma.post.findUnique({ where: { id: postId } });
+  if (!post || post.authorId !== user.id || post.intent !== "SEEK") {
+    return; // still ignorieren, kein Recht
+  }
+  await prisma.post.update({
+    where: { id: postId },
+    data: { status: "SOLVED" },
+  });
+  revalidatePath(`/posts/${postId}`);
+  revalidatePath("/");
+}
+
+// „haben geschmunzelt" — Toggle, nur für Pause-Beiträge. Keine Zahl, kein Gelb.
+export async function togglePauseReaction(postId: string): Promise<void> {
+  const user = await getCurrentUser();
+  const post = await prisma.post.findUnique({ where: { id: postId } });
+  if (!post || post.intent !== "PAUSE") return;
+
+  const existing = await prisma.pauseReaction.findUnique({
+    where: { userId_postId: { userId: user.id, postId } },
+  });
+  if (existing) {
+    await prisma.pauseReaction.delete({ where: { id: existing.id } });
+  } else {
+    await prisma.pauseReaction.create({ data: { userId: user.id, postId } });
+  }
+  revalidatePath(`/posts/${postId}`);
+  revalidatePath("/");
+}
+
+// Nutzer-Umschalter (nur bis zum echten Login).
+export async function switchUser(userId: string): Promise<void> {
+  if (!SEED_USERS.some((u) => u.id === userId)) return;
+  const cookieStore = await cookies();
+  cookieStore.set(USER_COOKIE, userId, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+  // Nutzerwechsel betrifft die ganze App (Header + Rechte) → alles neu rendern.
+  revalidatePath("/", "layout");
 }

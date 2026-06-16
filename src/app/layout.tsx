@@ -1,12 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { UserSwitcher } from "@/components/UserSwitcher";
+import { getCurrentUser, SEED_USERS } from "@/lib/users";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "bada bup",
   description:
-    "Berufszentrierte Wissensplattform für Arbeitsmediziner:innen — Fälle einbringen und namentlich beantworten.",
+    "Berufszentrierte Wissensplattform für Arbeitsmediziner:innen — Input holen und namentlich geben.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -20,37 +22,37 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f766e",
+  themeColor: "#1E46E0",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const current = await getCurrentUser();
+
   return (
     <html lang="de" className="h-full antialiased">
-      <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
+      <body className="flex min-h-full flex-col">
         <ServiceWorkerRegister />
-        <header className="border-b border-gray-200 bg-white">
-          <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-3">
+        <header className="border-b border-border-soft bg-white">
+          <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3 px-4 py-3">
             <Link href="/" className="text-lg font-semibold tracking-tight">
               bada bup
             </Link>
-            <Link
-              href="/cases/new"
-              className="rounded-md bg-teal-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-800"
-            >
-              Fall einbringen
-            </Link>
+            <UserSwitcher
+              users={SEED_USERS.map((u) => ({ id: u.id, name: u.name }))}
+              currentId={current.id}
+            />
           </div>
         </header>
         <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
           {children}
         </main>
-        <footer className="border-t border-gray-200 bg-white">
-          <div className="mx-auto w-full max-w-2xl px-4 py-3 text-xs text-gray-500">
-            bada bup · Walking Skeleton (T2) · Antworten sind immer namentlich.
+        <footer className="border-t border-border-soft">
+          <div className="mx-auto w-full max-w-2xl px-4 py-3 text-xs text-muted">
+            bada bup · Antworten sind immer namentlich.
           </div>
         </footer>
       </body>
