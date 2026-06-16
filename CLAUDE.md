@@ -34,11 +34,18 @@ Regel: vertikale Schnitte, nicht alle Module parallel. Jede Phase endet lauffäh
 Kleine Commits. Vor jedem Schritt kurz erklären. UI deutsch, Code englisch.
 Tests für Schleifenlogik und Berechtigungen, sobald die da sind.
 
-## Aktueller Stand (T2)
-- Datenmodell minimal (User, Case, Answer) — siehe `prisma/schema.prisma`.
-- Demo-Nutzer fest verdrahtet (kein echtes Login bis Phase 3).
-- Schleife: Fälle-Liste → Fall anlegen → Fall-Detail mit Antworten.
+## Aktueller Stand
+- Datenmodell: `Post` (Intent SEEK/GIVE/PAUSE, Status OPEN/SOLVED), `Answer`,
+  `Endorsement` (aggregiert), `Source` (url+relation), `PauseReaction` — `prisma/schema.prisma`.
+  Register (Fach/Pause) und Typ (Fall/Info) werden aus `intent` abgeleitet.
+- 3 freigeschaltete Seed-Nutzer:innen (`src/lib/users.ts`) + Cookie-Umschalter im Header.
+  Echtes Login (Magic-Link + manuelle Freischaltung) = nächster Schritt.
+- Kernschleife live: Feed (Tag/Fach/Pause) → Intent-Fork → posten → namentlich
+  antworten → „gelöst" (nur Fragende) → Konsens-Bänder. Pause: „haben geschmunzelt".
 - PWA: Manifest + Service Worker (installierbar, noch kein Push).
+- **Noch offen (Schicht 2):** Quelle/Divergenz-UI (§7), Anonymisierungs-Nudge (§6a),
+  echtes Login. §10-Punkte als TODO offen (Quelle=Freitext, Default-Tab=Tag).
+- Hinweis: Neon-DB enthält aktuell Testbeiträge aus der Verifikation (löschbar).
 
 ## Technik-Notizen (verbindlich)
 - **Prisma 7**: Verbindungs-URL NICHT im Schema, sondern in `prisma.config.ts`.
