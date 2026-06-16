@@ -15,7 +15,7 @@ export default async function ComposePage({
     intent === "GIVE" || intent === "PAUSE" ? intent : "SEEK";
 
   return (
-    <div>
+    <div className="anim-in">
       <Link href="/" className="text-sm text-kobalt hover:underline">
         ← Zurück zum Feed
       </Link>

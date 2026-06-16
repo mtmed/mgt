@@ -1,9 +1,10 @@
 "use client";
 
-import { useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
 import { togglePauseReaction } from "@/lib/actions";
 
 // „haben geschmunzelt" — Terrakotta, keine Zahl, kein Gelb. Off the record.
+// Optimistisch: Zustand kippt sofort.
 export function PauseReactionButton({
   postId,
   active,
@@ -11,20 +12,27 @@ export function PauseReactionButton({
   postId: string;
   active: boolean;
 }) {
-  const [pending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+  const [optimActive, setOptimActive] = useOptimistic(active, (s) => !s);
+
+  const onClick = () =>
+    startTransition(async () => {
+      setOptimActive(undefined);
+      await togglePauseReaction(postId);
+    });
+
   return (
     <button
       type="button"
-      disabled={pending}
-      onClick={() => startTransition(() => togglePauseReaction(postId))}
-      aria-pressed={active}
-      className={`rounded-full px-3 py-1 text-xs font-medium transition disabled:opacity-60 ${
-        active
+      onClick={onClick}
+      aria-pressed={optimActive}
+      className={`rounded-full px-3 py-1 text-xs font-medium ${
+        optimActive
           ? "bg-chip-pause-bg text-terra-deep"
           : "border border-border-pause text-terra-deep hover:bg-chip-pause-bg/60"
       }`}
     >
-      {active ? "geschmunzelt ✓" : "schmunzeln"}
+      {optimActive ? "geschmunzelt ✓" : "schmunzeln"}
     </button>
   );
 }

@@ -61,7 +61,7 @@ export default async function PostDetailPage({
   const iSmirked = post.pauseReactions.some((r) => r.userId === current.id);
 
   return (
-    <div>
+    <div className="anim-in">
       <Link href="/" className="text-sm text-kobalt hover:underline">
         ← Zurück zum Feed
       </Link>

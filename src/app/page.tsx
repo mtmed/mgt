@@ -51,7 +51,7 @@ export default async function HomePage({
   }));
 
   return (
-    <div className={`surface-transition -mx-4 -my-6 min-h-full px-4 py-6 ${TAB_BG[tab]}`}>
+    <div className={`anim-in surface-transition -mx-4 -my-6 min-h-full px-4 py-6 ${TAB_BG[tab]}`}>
       <FeedTabs active={tab} />
 
       <div className="mt-4 grid grid-cols-3 gap-2">
