@@ -9,6 +9,7 @@ import { EndorseButton } from "@/components/EndorseButton";
 import { SolvedButton } from "@/components/SolvedButton";
 import { PauseReactionButton } from "@/components/PauseReactionButton";
 import { PostSources } from "@/components/PostSources";
+import { BookmarkButton } from "@/components/BookmarkButton";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,10 @@ export default async function PostDetailPage({
   const myAnswerEndorsed = new Set(
     myEndorsements.map((e) => e.answerId).filter(Boolean) as string[],
   );
+
+  const bookmark = await prisma.bookmark.findUnique({
+    where: { userId_postId: { userId: current.id, postId: id } },
+  });
 
   const isPause = post.intent === "PAUSE";
   const isAuthor = post.authorId === current.id;
@@ -170,6 +175,10 @@ export default async function PostDetailPage({
             <SolvedButton postId={post.id} />
           </div>
         )}
+
+        <div className="mt-4">
+          <BookmarkButton postId={post.id} active={Boolean(bookmark)} />
+        </div>
       </article>
 
       {isPause ? (

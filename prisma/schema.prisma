@@ -37,6 +37,7 @@ model User {
   answers        Answer[]
   endorsements   Endorsement[]
   pauseReactions PauseReaction[]
+  bookmarks      Bookmark[]
 }
 
 model Post {
@@ -54,7 +55,19 @@ model Post {
   pauseReactions PauseReaction[]
   tags           PostTag[]
   attachments    Attachment[]
+  bookmarks      Bookmark[]
   createdAt      DateTime        @default(now())
+}
+
+// Privates Lesezeichen (kein öffentliches Signal, nur für die Person selbst).
+model Bookmark {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  createdAt DateTime @default(now())
+
+  @@id([userId, postId])
 }
 
 // Bild-Anhang (nicht-personenbezogen). EXIF wird beim Upload entfernt.

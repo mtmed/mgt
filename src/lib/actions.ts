@@ -249,6 +249,20 @@ export async function togglePauseReaction(postId: string): Promise<void> {
   revalidatePath("/");
 }
 
+// Privates Lesezeichen — Toggle (kein öffentliches Signal).
+export async function toggleBookmark(postId: string): Promise<void> {
+  const user = await getCurrentUser();
+  const where = { userId_postId: { userId: user.id, postId } };
+  const existing = await prisma.bookmark.findUnique({ where });
+  if (existing) {
+    await prisma.bookmark.delete({ where });
+  } else {
+    await prisma.bookmark.create({ data: { userId: user.id, postId } });
+  }
+  revalidatePath(`/posts/${postId}`);
+  revalidatePath("/meine");
+}
+
 // Nutzer-Umschalter (nur bis zum echten Login).
 export async function switchUser(userId: string): Promise<void> {
   if (!SEED_USERS.some((u) => u.id === userId)) return;
