@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { FeedTabs } from "@/components/FeedTabs";
-import { TagFilterBar } from "@/components/TagFilterBar";
+import { KorpusFilters } from "@/components/KorpusFilters";
 import { PostCard, type FeedPost } from "@/components/PostCard";
 
 export const dynamic = "force-dynamic";
@@ -10,19 +10,32 @@ export const metadata = { title: "Korpus · bada bup" };
 export default async function KorpusPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tag?: string }>;
+  searchParams: Promise<{ tag?: string; q?: string; status?: string }>;
 }) {
-  const { tag } = await searchParams;
+  const { tag, q: rawQ, status } = await searchParams;
+  const q = rawQ?.trim() || undefined;
+  const solvedOnly = status === "geloest";
 
   // Korpus = gelöste Fälle (SEEK/SOLVED) + geteiltes Wissen (GIVE).
-  const where: Prisma.PostWhereInput = {
-    OR: [{ intent: "SEEK", status: "SOLVED" }, { intent: "GIVE" }],
-    ...(tag ? { tags: { some: { tag: { slug: tag } } } } : {}),
-  };
+  // „nur gelöste Fälle" schränkt auf SEEK/SOLVED ein.
+  const base: Prisma.PostWhereInput = solvedOnly
+    ? { intent: "SEEK", status: "SOLVED" }
+    : { OR: [{ intent: "SEEK", status: "SOLVED" }, { intent: "GIVE" }] };
+
+  const and: Prisma.PostWhereInput[] = [base];
+  if (tag) and.push({ tags: { some: { tag: { slug: tag } } } });
+  if (q) {
+    and.push({
+      OR: [
+        { title: { contains: q, mode: "insensitive" } },
+        { text: { contains: q, mode: "insensitive" } },
+      ],
+    });
+  }
 
   const [posts, tags] = await Promise.all([
     prisma.post.findMany({
-      where,
+      where: { AND: and },
       orderBy: { createdAt: "desc" },
       include: {
         author: { select: { id: true, name: true } },
@@ -41,8 +54,6 @@ export default async function KorpusPage({
     }),
   ]);
 
-  const activeLabel = tags.find((t) => t.slug === tag)?.label;
-
   const feed: FeedPost[] = posts.map((p) => ({
     id: p.id,
     intent: p.intent,
@@ -59,26 +70,21 @@ export default async function KorpusPage({
     diverges: p.sources.some((s) => s.relation === "DIVERGES"),
   }));
 
+  const countLabel = q
+    ? `${feed.length} ${feed.length === 1 ? "Treffer" : "Treffer"} für „${q}"`
+    : `${feed.length} ${feed.length === 1 ? "Eintrag" : "Einträge"} im Korpus`;
+
   return (
     <div className="anim-in">
       <FeedTabs active="korpus" />
-      <TagFilterBar tags={tags} active={tag} />
+      <KorpusFilters tags={tags} q={q} tag={tag} solvedOnly={solvedOnly} />
 
-      <p className="mt-4 text-sm text-muted">
-        {activeLabel ? (
-          <>
-            {feed.length}{" "}
-            {feed.length === 1 ? "Eintrag" : "Einträge"} zu „{activeLabel}"
-          </>
-        ) : (
-          <>{feed.length} Einträge im Korpus</>
-        )}
-      </p>
+      <p className="mt-4 text-sm text-muted">{countLabel}</p>
 
       <ul className="mt-3 space-y-3">
         {feed.length === 0 ? (
           <li className="rounded-[12px] border border-dashed border-border-soft bg-white/60 p-8 text-center text-sm text-muted">
-            Noch nichts im Korpus{activeLabel ? ` zu „${activeLabel}"` : ""}.
+            Nichts gefunden. Andere Suche oder Filter probieren.
           </li>
         ) : (
           feed.map((post) => (
