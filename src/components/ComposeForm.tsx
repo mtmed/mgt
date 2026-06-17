@@ -56,9 +56,11 @@ type Tag = { slug: string; label: string; category: "VORSORGE" | "THEMA" | null 
 export function ComposeForm({
   initialIntent = "SEEK",
   tags = [],
+  labels = {},
 }: {
   initialIntent?: Intent;
   tags?: Tag[];
+  labels?: Record<string, string>;
 }) {
   const [state, formAction] = useActionState(createPost, {} as FormState);
   const [intent, setIntent] = useState<Intent>(initialIntent);
@@ -109,8 +111,12 @@ export function ComposeForm({
                     : "border-border-soft bg-white hover:border-kobalt/40"
                 }`}
               >
-                <span className="block text-sm font-semibold">{opt.label}</span>
-                <span className="block text-xs text-muted">{opt.hint}</span>
+                <span className="block text-sm font-semibold">
+                  {labels[`intent_${opt.value.toLowerCase()}_label`] ?? opt.label}
+                </span>
+                <span className="block text-xs text-muted">
+                  {labels[`intent_${opt.value.toLowerCase()}_hint`] ?? opt.hint}
+                </span>
               </button>
             );
           })}

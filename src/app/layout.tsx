@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { UserSwitcher } from "@/components/UserSwitcher";
 import { getCurrentUser, SEED_USERS } from "@/lib/users";
+import { getLabels } from "@/lib/labels";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -30,7 +31,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const current = await getCurrentUser();
+  const [current, labels] = await Promise.all([getCurrentUser(), getLabels()]);
 
   return (
     <html lang="de" className="h-full antialiased">
@@ -54,7 +55,7 @@ export default async function RootLayout({
         </main>
         <footer className="border-t border-border-soft">
           <div className="mx-auto w-full max-w-2xl px-4 py-3 text-xs text-muted">
-            bada bup · Antworten sind immer namentlich.
+            bada bup · {labels.footer}
           </div>
         </footer>
       </body>

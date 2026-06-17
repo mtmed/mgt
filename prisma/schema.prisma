@@ -71,6 +71,13 @@ model Tag {
   posts     PostTag[]
 }
 
+// Editierbare UI-Beschriftungen (Admin pflegt sie; Fallback = Default im Code).
+model Label {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 // n:m zwischen Post und Tag (kuratierte/hybride Verschlagwortung).
 model PostTag {
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)

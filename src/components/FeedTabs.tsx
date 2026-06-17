@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { FeedTab } from "@/lib/post";
+import { getLabels } from "@/lib/labels";
 
 // Ein Feed, vier Linsen (§3 + Korpus). Farb-Punkte als Vorschau der Farbsprache.
 const TABS: {
@@ -38,8 +39,10 @@ const TABS: {
   },
 ];
 
-export function FeedTabs({ active }: { active: FeedTab }) {
+export async function FeedTabs({ active }: { active: FeedTab }) {
+  const labels = await getLabels();
   const current = TABS.find((t) => t.value === active) ?? TABS[0];
+  const mood = labels[`mood_${current.value}`] ?? current.mood;
   return (
     <div>
       <nav className="flex gap-1 overflow-x-auto border-b border-border-soft">
@@ -71,7 +74,7 @@ export function FeedTabs({ active }: { active: FeedTab }) {
           );
         })}
       </nav>
-      <p className="mt-3 text-sm text-muted">{current.mood}</p>
+      <p className="mt-3 text-sm text-muted">{mood}</p>
     </div>
   );
 }

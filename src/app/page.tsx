@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { FeedTabs } from "@/components/FeedTabs";
 import { PostCard, type FeedPost } from "@/components/PostCard";
 import { isValidTab, type FeedTab } from "@/lib/post";
+import { getLabels } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
 
@@ -57,20 +58,22 @@ export default async function HomePage({
     diverges: p.sources.some((s) => s.relation === "DIVERGES"),
   }));
 
+  const labels = await getLabels();
+
   return (
     <div className={`anim-in surface-transition -mx-4 -my-6 min-h-full px-4 py-6 ${TAB_BG[tab]}`}>
       <FeedTabs active={tab} />
 
       <div className="mt-4 grid grid-cols-3 gap-2">
-        <ComposeLink intent="SEEK" label="Input holen" accent="kobalt" />
-        <ComposeLink intent="GIVE" label="Input geben" accent="kobalt" />
-        <ComposeLink intent="PAUSE" label="Pause" accent="terra" />
+        <ComposeLink intent="SEEK" label={labels.intent_seek_label} accent="kobalt" />
+        <ComposeLink intent="GIVE" label={labels.intent_give_label} accent="kobalt" />
+        <ComposeLink intent="PAUSE" label={labels.intent_pause_label} accent="terra" />
       </div>
 
       <ul className="mt-5 space-y-3">
         {feed.length === 0 ? (
           <li className="rounded-[12px] border border-dashed border-border-soft bg-white/60 p-8 text-center text-sm text-muted">
-            Noch nichts hier. Mach den Anfang.
+            {labels.feed_empty}
           </li>
         ) : (
           feed.map((post) => (

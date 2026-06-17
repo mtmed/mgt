@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ComposeForm } from "@/components/ComposeForm";
+import { getLabels } from "@/lib/labels";
 
 export const metadata = { title: "Beitrag erstellen · bada bup" };
 export const dynamic = "force-dynamic";
@@ -16,11 +17,14 @@ export default async function ComposePage({
   const initial: Intent =
     intent === "GIVE" || intent === "PAUSE" ? intent : "SEEK";
 
-  const tags = await prisma.tag.findMany({
-    where: { approved: true },
-    orderBy: [{ category: "asc" }, { label: "asc" }],
-    select: { slug: true, label: true, category: true },
-  });
+  const [tags, labels] = await Promise.all([
+    prisma.tag.findMany({
+      where: { approved: true },
+      orderBy: [{ category: "asc" }, { label: "asc" }],
+      select: { slug: true, label: true, category: true },
+    }),
+    getLabels(),
+  ]);
 
   return (
     <div className="anim-in">
@@ -29,7 +33,7 @@ export default async function ComposePage({
       </Link>
       <h1 className="mt-2 mb-4 text-xl font-semibold">Beitrag erstellen</h1>
       <div className="rounded-[12px] border border-border-soft bg-white p-5">
-        <ComposeForm initialIntent={initial} tags={tags} />
+        <ComposeForm initialIntent={initial} tags={tags} labels={labels} />
       </div>
     </div>
   );
