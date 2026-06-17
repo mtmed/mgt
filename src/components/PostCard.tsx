@@ -14,6 +14,8 @@ export type FeedPost = {
   answerCount: number;
   endorsementCount: number;
   pauseFaces: { id: string; name: string }[];
+  hasSource: boolean;
+  diverges: boolean;
 };
 
 function excerpt(text: string, max = 180) {
@@ -84,6 +86,16 @@ export function PostCard({ post }: { post: FeedPost }) {
           </span>
         )}
         {post.intent === "GIVE" && <ConsensusBand count={post.endorsementCount} />}
+        {post.hasSource && !post.diverges && (
+          <span className="rounded-[6px] border border-chip-quelle-bd bg-chip-quelle-bg px-1.5 py-0.5 text-kobalt">
+            Quelle
+          </span>
+        )}
+        {post.diverges && (
+          <span className="rounded-[6px] border border-diverg-bd bg-diverg-bg px-1.5 py-0.5 text-diverg-fg">
+            Divergenz
+          </span>
+        )}
       </div>
     </Link>
   );

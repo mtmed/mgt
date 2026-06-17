@@ -5,7 +5,11 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, SEED_USERS, USER_COOKIE } from "@/lib/users";
-import { createAnswerSchema, createPostSchema } from "@/lib/validation";
+import {
+  createAnswerSchema,
+  createPostSchema,
+  createSourceSchema,
+} from "@/lib/validation";
 
 export type FormState = { error?: string };
 
@@ -22,6 +26,26 @@ export async function createPost(
     return { error: parsed.error.issues[0]?.message ?? "Ungültige Eingabe." };
   }
 
+  // Optionale Quelle (§7) — nur beim „Input geben" (GIVE).
+  const rawSourceTitle = formData.get("sourceTitle");
+  let source: ReturnType<typeof createSourceSchema.parse> | undefined;
+  if (
+    parsed.data.intent === "GIVE" &&
+    typeof rawSourceTitle === "string" &&
+    rawSourceTitle.trim() !== ""
+  ) {
+    const s = createSourceSchema.safeParse({
+      title: rawSourceTitle,
+      url: formData.get("sourceUrl"),
+      relation: formData.get("sourceRelation"),
+      reason: formData.get("sourceReason"),
+    });
+    if (!s.success) {
+      return { error: s.error.issues[0]?.message ?? "Ungültige Quelle." };
+    }
+    source = s.data;
+  }
+
   const author = await getCurrentUser();
   const post = await prisma.post.create({
     data: {
@@ -29,6 +53,16 @@ export async function createPost(
       text: parsed.data.text,
       isPseudonym: parsed.data.isPseudonym,
       authorId: author.id,
+      sources: source
+        ? {
+            create: {
+              title: source.title,
+              url: source.url,
+              relation: source.relation,
+              reason: source.reason,
+            },
+          }
+        : undefined,
     },
   });
 

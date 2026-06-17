@@ -54,7 +54,16 @@ function SubmitButton({ accent }: { accent: "kobalt" | "terra" }) {
 export function ComposeForm({ initialIntent = "SEEK" }: { initialIntent?: Intent }) {
   const [state, formAction] = useActionState(createPost, {} as FormState);
   const [intent, setIntent] = useState<Intent>(initialIntent);
+  const [relation, setRelation] = useState<"MATCHES" | "EXCEEDS" | "DIVERGES">(
+    "MATCHES",
+  );
   const active = INTENTS.find((i) => i.value === intent)!;
+
+  const RELATIONS: { value: typeof relation; label: string }[] = [
+    { value: "MATCHES", label: "deckt sich mit der Leitlinie" },
+    { value: "EXCEEDS", label: "geht über die Leitlinie hinaus" },
+    { value: "DIVERGES", label: "weicht bewusst ab" },
+  ];
 
   return (
     <form action={formAction} className="space-y-4">
@@ -111,6 +120,64 @@ export function ComposeForm({ initialIntent = "SEEK" }: { initialIntent?: Intent
             </span>
           </span>
         </label>
+      )}
+
+      {/* Quelle anhängen (§7) — nur beim „Input geben". */}
+      {intent === "GIVE" && (
+        <fieldset className="rounded-lg border border-border-soft p-3">
+          <legend className="px-1 text-sm font-medium">
+            Quelle anhängen <span className="text-muted">(optional)</span>
+          </legend>
+
+          <input
+            type="text"
+            name="sourceTitle"
+            placeholder="Titel der Leitlinie / Quelle"
+            className="mt-1 w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
+          />
+          <input
+            type="url"
+            name="sourceUrl"
+            placeholder="Link (optional)"
+            className="mt-2 w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
+          />
+
+          <input type="hidden" name="sourceRelation" value={relation} />
+          <div className="mt-3 space-y-1">
+            <span className="text-xs text-muted">
+              Verhältnis deiner Praxis zur Leitlinie:
+            </span>
+            <div className="flex flex-col gap-1">
+              {RELATIONS.map((r) => (
+                <label key={r.value} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="relationChoice"
+                    checked={relation === r.value}
+                    onChange={() => setRelation(r.value)}
+                    className="h-4 w-4 accent-kobalt"
+                  />
+                  {r.label}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {relation === "DIVERGES" && (
+            <div className="mt-3">
+              <label htmlFor="sourceReason" className="block text-xs text-muted">
+                Warum weichst du bewusst ab? (kurz — Pflicht)
+              </label>
+              <textarea
+                id="sourceReason"
+                name="sourceReason"
+                rows={2}
+                placeholder="z. B. individuelle Gefährdungslage, aktuellere Evidenz …"
+                className="mt-1 w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
+              />
+            </div>
+          )}
+        </fieldset>
       )}
 
       {state.error && (

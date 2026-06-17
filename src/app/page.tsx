@@ -35,6 +35,7 @@ export default async function HomePage({
       author: { select: { id: true, name: true } },
       _count: { select: { answers: true, endorsements: true } },
       pauseReactions: { include: { user: { select: { id: true, name: true } } } },
+      sources: { select: { relation: true } },
     },
   });
 
@@ -48,6 +49,8 @@ export default async function HomePage({
     answerCount: p._count.answers,
     endorsementCount: p._count.endorsements,
     pauseFaces: p.pauseReactions.map((r) => r.user),
+    hasSource: p.sources.length > 0,
+    diverges: p.sources.some((s) => s.relation === "DIVERGES"),
   }));
 
   return (

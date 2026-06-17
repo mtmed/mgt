@@ -8,6 +8,7 @@ import { AnswerForm } from "@/components/AnswerForm";
 import { EndorseButton } from "@/components/EndorseButton";
 import { SolvedButton } from "@/components/SolvedButton";
 import { PauseReactionButton } from "@/components/PauseReactionButton";
+import { PostSources } from "@/components/PostSources";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,7 @@ export default async function PostDetailPage({
         },
         _count: { select: { endorsements: true } },
         pauseReactions: { include: { user: { select: { id: true, name: true } } } },
+        sources: { orderBy: { createdAt: "asc" } },
       },
     }),
     getCurrentUser(),
@@ -100,6 +102,8 @@ export default async function PostDetailPage({
           )}
           {post.isPseudonym ? "pseudonym" : post.author.name} · {df.format(post.createdAt)}
         </p>
+
+        {post.sources.length > 0 && <PostSources sources={post.sources} />}
 
         {/* Info-Beitrag: selbst „würde ich genauso machen" sammeln */}
         {post.intent === "GIVE" && (
