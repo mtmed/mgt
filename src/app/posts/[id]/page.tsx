@@ -112,12 +112,13 @@ export default async function PostDetailPage({
         {post.tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {post.tags.map(({ tag }) => (
-              <span
+              <Link
                 key={tag.id}
-                className="rounded-full border border-chip-quelle-bd bg-chip-quelle-bg px-2 py-0.5 text-xs text-kobalt"
+                href={`/korpus?tag=${tag.slug}`}
+                className="rounded-full border border-chip-quelle-bd bg-chip-quelle-bg px-2 py-0.5 text-xs text-kobalt hover:border-kobalt/40"
               >
                 {tag.label}
-              </span>
+              </Link>
             ))}
           </div>
         )}

@@ -312,6 +312,37 @@ const POST_TAGS: Record<string, string[]> = {
   p13: ["reisemedizin", "impfen"],
 };
 
+// Quellen (§7) an Info-Beiträgen — inkl. eines bewussten Divergenz-Beispiels.
+const SOURCES: {
+  id: string;
+  postId: string;
+  title: string;
+  url?: string;
+  relation: "MATCHES" | "EXCEEDS" | "DIVERGES";
+  reason?: string;
+}[] = [
+  {
+    id: "s01",
+    postId: "p03",
+    title: "AUVA – Hautschutz am Arbeitsplatz",
+    relation: "MATCHES",
+  },
+  {
+    id: "s02",
+    postId: "p05",
+    title: "Österreichischer Impfplan (BMSGPK)",
+    relation: "EXCEEDS",
+  },
+  {
+    id: "s03",
+    postId: "p15",
+    title: "Erste-Hilfe-Ausbildung (AUVA/ÖRK-Standard)",
+    relation: "DIVERGES",
+    reason:
+      "Wir frischen jährlich statt im üblichen 2-Jahres-Intervall auf — die Handlungssicherheit im Ernstfall ist spürbar besser.",
+  },
+];
+
 async function main() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL ist nicht gesetzt.");
@@ -399,6 +430,15 @@ async function main() {
         .filter((row): row is { postId: string; tagId: string } => !!row.tagId),
     );
     await prisma.postTag.createMany({ data: postTagRows, skipDuplicates: true });
+
+    for (const s of SOURCES) {
+      const { id, ...rest } = s;
+      await prisma.source.upsert({
+        where: { id },
+        update: rest,
+        create: { id, ...rest },
+      });
+    }
 
     console.log(
       `Seed fertig: ${USERS.length} Nutzer:innen, ${POSTS.length} Beiträge, ${ANSWERS.length} Antworten, ${endorseRows.length} Zustimmungen, ${pauseRows.length} Pause-Reaktionen, ${TAGS.length} Tags, ${postTagRows.length} Verschlagwortungen.`,

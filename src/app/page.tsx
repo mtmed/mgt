@@ -11,6 +11,7 @@ const TAB_BG: Record<FeedTab, string> = {
   tag: "bg-kreme",
   fach: "bg-bg-fach",
   pause: "bg-sand-warm",
+  korpus: "bg-kreme", // eigener Reiter /korpus; hier nur zur Typvollständigkeit
 };
 
 export default async function HomePage({

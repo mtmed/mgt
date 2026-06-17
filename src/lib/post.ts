@@ -14,8 +14,8 @@ export function typeLabel(intent: Intent): "Fall" | "Info" | null {
   return null;
 }
 
-// Feed-Filter der drei Reiter.
-export type FeedTab = "tag" | "fach" | "pause";
+// Feed-Linsen. „korpus" ist eine eigene Route (/korpus), die übrigen sind ?tab=.
+export type FeedTab = "tag" | "fach" | "pause" | "korpus";
 
 export function isValidTab(value: string | undefined): value is FeedTab {
   return value === "tag" || value === "fach" || value === "pause";
