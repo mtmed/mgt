@@ -11,6 +11,8 @@ export type FeedPost = {
   isPseudonym: boolean;
   text: string;
   author: { id: string; name: string };
+  title: string | null;
+  tags: { slug: string; label: string }[];
   answerCount: number;
   endorsementCount: number;
   pauseFaces: { id: string; name: string }[];
@@ -70,7 +72,25 @@ export function PostCard({ post }: { post: FeedPost }) {
         )}
       </div>
 
-      <p className="mt-2 text-sm leading-relaxed">{excerpt(post.text)}</p>
+      {post.title && (
+        <h2 className="mt-2 font-semibold leading-snug">{post.title}</h2>
+      )}
+      <p className="mt-1 text-sm leading-relaxed text-muted">
+        {excerpt(post.text)}
+      </p>
+
+      {post.tags.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {post.tags.slice(0, 4).map((t) => (
+            <span
+              key={t.slug}
+              className="rounded-full border border-chip-quelle-bd bg-chip-quelle-bg px-1.5 py-0.5 text-[11px] text-kobalt"
+            >
+              {t.label}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
         <span className="inline-flex items-center gap-1.5">

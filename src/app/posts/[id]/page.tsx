@@ -38,6 +38,7 @@ export default async function PostDetailPage({
         _count: { select: { endorsements: true } },
         pauseReactions: { include: { user: { select: { id: true, name: true } } } },
         sources: { orderBy: { createdAt: "asc" } },
+        tags: { include: { tag: true } },
       },
     }),
     getCurrentUser(),
@@ -92,7 +93,12 @@ export default async function PostDetailPage({
           )}
         </div>
 
-        <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">
+        {post.title && (
+          <h1 className="mt-3 text-lg font-semibold leading-snug">
+            {post.title}
+          </h1>
+        )}
+        <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
           {post.text}
         </p>
 
@@ -102,6 +108,19 @@ export default async function PostDetailPage({
           )}
           {post.isPseudonym ? "pseudonym" : post.author.name} · {df.format(post.createdAt)}
         </p>
+
+        {post.tags.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {post.tags.map(({ tag }) => (
+              <span
+                key={tag.id}
+                className="rounded-full border border-chip-quelle-bd bg-chip-quelle-bg px-2 py-0.5 text-xs text-kobalt"
+              >
+                {tag.label}
+              </span>
+            ))}
+          </div>
+        )}
 
         {post.sources.length > 0 && <PostSources sources={post.sources} />}
 

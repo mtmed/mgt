@@ -51,18 +51,38 @@ function SubmitButton({ accent }: { accent: "kobalt" | "terra" }) {
   );
 }
 
-export function ComposeForm({ initialIntent = "SEEK" }: { initialIntent?: Intent }) {
+type Tag = { slug: string; label: string; category: "VORSORGE" | "THEMA" | null };
+
+export function ComposeForm({
+  initialIntent = "SEEK",
+  tags = [],
+}: {
+  initialIntent?: Intent;
+  tags?: Tag[];
+}) {
   const [state, formAction] = useActionState(createPost, {} as FormState);
   const [intent, setIntent] = useState<Intent>(initialIntent);
   const [relation, setRelation] = useState<"MATCHES" | "EXCEEDS" | "DIVERGES">(
     "MATCHES",
   );
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const active = INTENTS.find((i) => i.value === intent)!;
+  const isFach = intent !== "PAUSE";
 
   const RELATIONS: { value: typeof relation; label: string }[] = [
     { value: "MATCHES", label: "deckt sich mit der Leitlinie" },
     { value: "EXCEEDS", label: "geht über die Leitlinie hinaus" },
     { value: "DIVERGES", label: "weicht bewusst ab" },
+  ];
+
+  const toggleTag = (slug: string) =>
+    setSelectedTags((prev) =>
+      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug],
+    );
+
+  const tagGroups: { title: string; items: Tag[] }[] = [
+    { title: "Vorsorge", items: tags.filter((t) => t.category === "VORSORGE") },
+    { title: "Themen", items: tags.filter((t) => t.category === "THEMA") },
   ];
 
   return (
@@ -96,6 +116,19 @@ export function ComposeForm({ initialIntent = "SEEK" }: { initialIntent?: Intent
 
       <input type="hidden" name="intent" value={intent} />
 
+      {isFach && (
+        <div>
+          <input
+            type="text"
+            name="title"
+            required
+            maxLength={160}
+            placeholder="Titel — kurz und aussagekräftig"
+            className="w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm font-medium focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
+          />
+        </div>
+      )}
+
       <div>
         <textarea
           name="text"
@@ -105,6 +138,51 @@ export function ComposeForm({ initialIntent = "SEEK" }: { initialIntent?: Intent
           className="w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
         />
       </div>
+
+      {isFach && tags.length > 0 && (
+        <div className="space-y-2">
+          <span className="text-sm font-medium">
+            Tags <span className="text-muted">(optional, Mehrfachauswahl)</span>
+          </span>
+          {selectedTags.map((slug) => (
+            <input key={slug} type="hidden" name="tags" value={slug} />
+          ))}
+          {tagGroups.map(
+            (group) =>
+              group.items.length > 0 && (
+                <div key={group.title}>
+                  <span className="text-xs text-muted">{group.title}</span>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {group.items.map((t) => {
+                      const on = selectedTags.includes(t.slug);
+                      return (
+                        <button
+                          key={t.slug}
+                          type="button"
+                          onClick={() => toggleTag(t.slug)}
+                          aria-pressed={on}
+                          className={`rounded-full px-2.5 py-1 text-xs ${
+                            on
+                              ? "bg-kobalt text-white"
+                              : "border border-chip-quelle-bd bg-chip-quelle-bg text-kobalt"
+                          }`}
+                        >
+                          {t.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ),
+          )}
+          <input
+            type="text"
+            name="newTags"
+            placeholder="Neuen Tag vorschlagen (kommagetrennt) — wird geprüft"
+            className="mt-1 w-full rounded-md border border-border-soft bg-white px-3 py-2 text-xs focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
+          />
+        </div>
+      )}
 
       {intent === "SEEK" && (
         <label className="flex items-start gap-2 text-sm">

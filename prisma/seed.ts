@@ -260,6 +260,58 @@ const PAUSE_REACTIONS: { postId: string; users: string[] }[] = [
   { postId: "p14", users: others(["u-jonas"], 6) },
 ];
 
+// Kuratierte Starter-Taxonomie (zwei Achsen).
+const TAGS: { slug: string; label: string; category: "VORSORGE" | "THEMA" }[] = [
+  { slug: "g20", label: "G20 Lärm", category: "VORSORGE" },
+  { slug: "g24", label: "G24 Hauterkrankungen", category: "VORSORGE" },
+  { slug: "g25", label: "G25 Fahr-/Steuertätigkeit", category: "VORSORGE" },
+  { slug: "g26", label: "G26 Atemschutz", category: "VORSORGE" },
+  { slug: "g37", label: "G37 Bildschirm", category: "VORSORGE" },
+  { slug: "g41", label: "G41 Absturzgefahr", category: "VORSORGE" },
+  { slug: "g42", label: "G42 Infektionskrankheiten", category: "VORSORGE" },
+  { slug: "g46", label: "G46 Muskel-Skelett-Belastung", category: "VORSORGE" },
+  { slug: "impfen", label: "Impfen & Infektionsschutz", category: "THEMA" },
+  { slug: "mutterschutz", label: "Mutterschutz", category: "THEMA" },
+  { slug: "gefahrstoffe", label: "Gefahrstoffe & Haut", category: "THEMA" },
+  { slug: "ergonomie", label: "Ergonomie & MSE", category: "THEMA" },
+  { slug: "psyche", label: "Psyche & BGM", category: "THEMA" },
+  { slug: "sucht", label: "Sucht", category: "THEMA" },
+  { slug: "berufskrankheiten", label: "Berufskrankheiten", category: "THEMA" },
+  { slug: "reisemedizin", label: "Reisemedizin", category: "THEMA" },
+  { slug: "bem", label: "Wiedereingliederung & BEM", category: "THEMA" },
+  { slug: "recht", label: "Recht & Datenschutz", category: "THEMA" },
+];
+
+// Titel nur für Fach (SEEK/GIVE) — Pause-Beiträge (p06/p10/p14) bleiben titellos.
+const TITLES: Record<string, string> = {
+  p01: "Bildschirmbrille: Kostenübernahme bei Gleitsichtträgern?",
+  p02: "Eignung für Absturzgefahr bei kontrollierter Epilepsie?",
+  p03: "Hautschutzplan am Waschplatz – höhere Compliance",
+  p04: "Otoplastiken vs. Kapselgehörschutz für Brillenträger?",
+  p05: "Hep-B-Non-Responder: erst Anti-HBc abklären",
+  p07: "Schwangere im Nachtdienst: Verbot oder individuelle GBU?",
+  p08: "Homeoffice-Ergonomie als 1-Seiten-Checkliste",
+  p09: "BK 2108 sauber dokumentieren – wie?",
+  p11: "Drogenscreening: rechtliche Grenzen & Einwilligung",
+  p12: "Stufenplan bei Wiedereingliederung konkret schreiben",
+  p13: "Tropentauglichkeit & Malariaprophylaxe bei Entsendung",
+  p15: "AED-/Reanimations-Schulung jährlich statt alle zwei Jahre",
+};
+
+const POST_TAGS: Record<string, string[]> = {
+  p01: ["g37"],
+  p02: ["g41"],
+  p03: ["g24", "gefahrstoffe"],
+  p04: ["g20"],
+  p05: ["impfen", "g42"],
+  p07: ["mutterschutz"],
+  p08: ["ergonomie", "g37"],
+  p09: ["berufskrankheiten", "g46"],
+  p11: ["sucht", "recht"],
+  p12: ["bem"],
+  p13: ["reisemedizin", "impfen"],
+};
+
 async function main() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL ist nicht gesetzt.");
@@ -281,6 +333,7 @@ async function main() {
         intent: p.intent,
         status: p.status ?? "OPEN",
         isPseudonym: p.isPseudonym ?? false,
+        title: TITLES[p.id] ?? null,
         text: p.text,
         authorId: p.authorId,
         createdAt: h(p.hoursAgo),
@@ -326,8 +379,24 @@ async function main() {
       skipDuplicates: true,
     });
 
+    for (const t of TAGS) {
+      await prisma.tag.upsert({
+        where: { slug: t.slug },
+        update: { label: t.label, category: t.category, approved: true },
+        create: { ...t, approved: true },
+      });
+    }
+    const tagRows = await prisma.tag.findMany({ select: { id: true, slug: true } });
+    const slugToId = new Map(tagRows.map((t) => [t.slug, t.id]));
+    const postTagRows = Object.entries(POST_TAGS).flatMap(([postId, slugs]) =>
+      slugs
+        .map((slug) => ({ postId, tagId: slugToId.get(slug) }))
+        .filter((row): row is { postId: string; tagId: string } => !!row.tagId),
+    );
+    await prisma.postTag.createMany({ data: postTagRows, skipDuplicates: true });
+
     console.log(
-      `Seed fertig: ${USERS.length} Nutzer:innen, ${POSTS.length} Beiträge, ${ANSWERS.length} Antworten, ${endorseRows.length} Zustimmungen, ${pauseRows.length} Pause-Reaktionen.`,
+      `Seed fertig: ${USERS.length} Nutzer:innen, ${POSTS.length} Beiträge, ${ANSWERS.length} Antworten, ${endorseRows.length} Zustimmungen, ${pauseRows.length} Pause-Reaktionen, ${TAGS.length} Tags, ${postTagRows.length} Verschlagwortungen.`,
     );
   } finally {
     await prisma.$disconnect();

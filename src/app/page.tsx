@@ -36,6 +36,7 @@ export default async function HomePage({
       _count: { select: { answers: true, endorsements: true } },
       pauseReactions: { include: { user: { select: { id: true, name: true } } } },
       sources: { select: { relation: true } },
+      tags: { include: { tag: { select: { slug: true, label: true } } } },
     },
   });
 
@@ -44,8 +45,10 @@ export default async function HomePage({
     intent: p.intent,
     status: p.status,
     isPseudonym: p.isPseudonym,
+    title: p.title,
     text: p.text,
     author: p.author,
+    tags: p.tags.map((pt) => pt.tag),
     answerCount: p._count.answers,
     endorsementCount: p._count.endorsements,
     pauseFaces: p.pauseReactions.map((r) => r.user),

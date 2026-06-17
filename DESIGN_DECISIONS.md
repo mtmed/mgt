@@ -233,3 +233,27 @@ Diese sind bewusst noch nicht entschieden; im Skeleton offen lassen oder als TOD
 - **Band-Text auf schmalen Screens:** ggf. Kurzform der Band-Texte (z. B. „einige Kolleg:innen“ ohne den vollen Satz) — Detailfrage, nicht blockierend. Die Pro-Beitrag-Zustimmung selbst ist mit den Konsens-Bändern (§5a) **entschieden**.
 - **Kollektive Utility-Kennzahl (Zunft-Ebene):** ob die Zunft *insgesamt* einen kollektiven „proof of work“ ausweist — weiter offen (siehe Projektplan). Betrifft **nicht** die Pro-Beitrag-Zustimmung, die mit §5a entschieden ist.
 - **Intensität der Pause-Erwärmung:** Feinjustierung des Sand-Tons.
+
+---
+
+## 11. Beschlossene Erweiterungen (nach der Kernschleife, Juni 2026)
+
+Konkretisierungen einiger §10-Punkte und neue Festlegungen aus der Roadmap:
+
+- **Titel:** **Pflicht im Fach-Register** (Frage/Fall & Info), **keiner im Pause-Register**
+  (Titel widerspräche dem Leichten/Off-the-record).
+- **Tags:** **kuratiert/hybrid.** Zwei Achsen — *Vorsorge* (G-Grundsätze: G20, G24, G25,
+  G26, G37, G41, G42, G46) und *Themen* (Impfen, Mutterschutz, Gefahrstoffe/Haut,
+  Ergonomie/MSE, Psyche/BGM, Sucht, Berufskrankheiten, Reisemedizin, BEM, Recht/DSGVO).
+  Mehrfach-Tagging. „Neuen Tag vorschlagen“ → `approved=false`, Admin gibt frei.
+  Tags sind **Fakt/Struktur → Kobalt** (kein Anerkennungssignal).
+- **Fachlicher Korpus:** **eigener Reiter** neben Tag/Fach/Pause, tag-basiert, zeigt die
+  gelösten Fälle/Infos (der durchsuchbare Korpus).
+- **Bild-Anhänge:** nur **nicht-personenbezogen** (Arbeitsplatz, Gefahrenstelle, Gerät) —
+  **keine Patienten-/Personenbilder.** Schutzplanken: EXIF-Strip, Nudge „keine Personen/
+  Schilder/Kennzeichen“, Typ-/Größenlimit, EU-Speicher.
+- **Kollektive Errungenschaften (Startseite):** zulässig als **rein kollektiver** „Korpus-
+  Stand“ (gelöste Fälle / geteilte Erkenntnisse / aktive Themen) — **nie individuell**, kein
+  Ranking, keine Reichweite (konkretisiert §10 + bleibt innerhalb §1/§9).
+- **„Teilen“:** vorerst **verworfen.**
+- **Internes Messen:** als geschützte **Admin-Seite** (§9), nicht als E-Mail/Push.

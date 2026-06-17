@@ -44,6 +44,7 @@ model Post {
   intent         Intent
   status         PostStatus      @default(OPEN)
   isPseudonym    Boolean         @default(false) // nur bei SEEK erlaubt
+  title          String? // Pflicht für Fach (SEEK/GIVE), keiner im Pause-Register
   text           String
   author         User            @relation(fields: [authorId], references: [id])
   authorId       String
@@ -51,7 +52,33 @@ model Post {
   endorsements   Endorsement[]
   sources        Source[]
   pauseReactions PauseReaction[]
+  tags           PostTag[]
   createdAt      DateTime        @default(now())
+}
+
+enum TagCategory {
+  VORSORGE // G-Grundsätze (G20, G25, G37 …)
+  THEMA // Themenfelder (Impfen, Mutterschutz …)
+}
+
+model Tag {
+  id        String       @id @default(cuid())
+  slug      String       @unique
+  label     String
+  category  TagCategory? // null = von Nutzer:in vorgeschlagen, noch ohne Einordnung
+  approved  Boolean      @default(true) // kuratiert = true; Vorschläge = false (Admin gibt frei)
+  createdAt DateTime     @default(now())
+  posts     PostTag[]
+}
+
+// n:m zwischen Post und Tag (kuratierte/hybride Verschlagwortung).
+model PostTag {
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId  String
+
+  @@id([postId, tagId])
 }
 
 model Answer {

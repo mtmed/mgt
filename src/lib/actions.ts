@@ -13,12 +13,25 @@ import {
 
 export type FormState = { error?: string };
 
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+}
+
 export async function createPost(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const parsed = createPostSchema.safeParse({
     intent: formData.get("intent"),
+    title: formData.get("title"),
     text: formData.get("text"),
     isPseudonym: formData.get("isPseudonym") === "on",
   });
@@ -46,10 +59,46 @@ export async function createPost(
     source = s.data;
   }
 
+  // Tags (nur Fach): freigegebene per slug + optionale Vorschläge (approved=false).
+  let tagIds: string[] = [];
+  if (parsed.data.intent !== "PAUSE") {
+    const selectedSlugs = formData
+      .getAll("tags")
+      .filter((v): v is string => typeof v === "string");
+    if (selectedSlugs.length > 0) {
+      const existing = await prisma.tag.findMany({
+        where: { slug: { in: selectedSlugs }, approved: true },
+        select: { id: true },
+      });
+      tagIds = existing.map((t) => t.id);
+    }
+
+    const rawNew = formData.get("newTags");
+    if (typeof rawNew === "string" && rawNew.trim() !== "") {
+      const labels = rawNew
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 5);
+      for (const label of labels) {
+        const slug = slugify(label);
+        if (!slug) continue;
+        const tag = await prisma.tag.upsert({
+          where: { slug },
+          update: {},
+          create: { slug, label: label.slice(0, 40), approved: false },
+        });
+        tagIds.push(tag.id);
+      }
+    }
+    tagIds = [...new Set(tagIds)];
+  }
+
   const author = await getCurrentUser();
   const post = await prisma.post.create({
     data: {
       intent: parsed.data.intent,
+      title: parsed.data.title ?? null,
       text: parsed.data.text,
       isPseudonym: parsed.data.isPseudonym,
       authorId: author.id,
@@ -62,6 +111,9 @@ export async function createPost(
               reason: source.reason,
             },
           }
+        : undefined,
+      tags: tagIds.length
+        ? { create: tagIds.map((tagId) => ({ tagId })) }
         : undefined,
     },
   });

@@ -5,6 +5,11 @@ import { z } from "zod";
 export const createPostSchema = z
   .object({
     intent: z.enum(["SEEK", "GIVE", "PAUSE"]),
+    title: z
+      .string()
+      .trim()
+      .max(160, "Der Titel ist zu lang (max. 160 Zeichen).")
+      .optional(),
     text: z
       .string()
       .trim()
@@ -12,11 +17,17 @@ export const createPostSchema = z
       .max(4000, "Das ist zu lang (max. 4000 Zeichen)."),
     isPseudonym: z.boolean().default(false),
   })
-  // Pseudonym ist nur beim „Input holen" (SEEK) erlaubt.
+  // Pseudonym nur bei „Input holen" (SEEK); Titel nur im Fach-Register.
   .transform((v) => ({
     ...v,
     isPseudonym: v.intent === "SEEK" ? v.isPseudonym : false,
-  }));
+    title: v.intent === "PAUSE" ? undefined : v.title,
+  }))
+  // Titel ist im Fach-Register Pflicht.
+  .refine((v) => v.intent === "PAUSE" || (v.title?.length ?? 0) >= 3, {
+    message: "Bitte einen Titel angeben (mind. 3 Zeichen).",
+    path: ["title"],
+  });
 
 export const createAnswerSchema = z.object({
   postId: z.string().min(1, "Fehlende Beitrags-Referenz."),
