@@ -209,6 +209,28 @@ export function ComposeForm({
         </label>
       )}
 
+      {/* Bild-Anhänge — nur Fach, nicht-personenbezogen. */}
+      {isFach && (
+        <div>
+          <label htmlFor="images" className="block text-sm font-medium">
+            Bilder <span className="text-muted">(optional, max. 3)</span>
+          </label>
+          <input
+            id="images"
+            name="images"
+            type="file"
+            accept="image/*"
+            multiple
+            className="mt-1 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-eisblau/40 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-kobalt"
+          />
+          <p className="mt-1 text-xs text-muted">
+            Nur Arbeitsplatz/Situation — keine Personen, Gesichter, Namensschilder
+            oder Kennzeichen. Standort-/Gerätedaten (EXIF) werden beim Hochladen
+            entfernt.
+          </p>
+        </div>
+      )}
+
       {/* Quelle anhängen (§7) — nur beim „Input geben". */}
       {intent === "GIVE" && (
         <fieldset className="rounded-lg border border-border-soft p-3">

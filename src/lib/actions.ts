@@ -1,5 +1,8 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+import sharp from "sharp";
+import { put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -94,6 +97,46 @@ export async function createPost(
     tagIds = [...new Set(tagIds)];
   }
 
+  // Bild-Anhänge (nur Fach): verkleinern + EXIF entfernen, dann zu Vercel Blob.
+  const attachmentData: { url: string; width: number; height: number }[] = [];
+  if (parsed.data.intent !== "PAUSE") {
+    const files = formData
+      .getAll("images")
+      .filter((f): f is File => f instanceof File && f.size > 0)
+      .slice(0, 3);
+
+    if (files.length > 0) {
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        return {
+          error:
+            "Bild-Upload ist noch nicht konfiguriert (BLOB_READ_WRITE_TOKEN fehlt).",
+        };
+      }
+      for (const file of files) {
+        if (!file.type.startsWith("image/")) {
+          return { error: "Nur Bilddateien sind erlaubt." };
+        }
+        if (file.size > 8 * 1024 * 1024) {
+          return { error: "Ein Bild ist zu groß (max. 8 MB)." };
+        }
+        const input = Buffer.from(await file.arrayBuffer());
+        // .rotate() wendet die EXIF-Orientierung an; sharp verwirft Metadaten
+        // (GPS/Zeit/Gerät) standardmäßig beim Re-Encode.
+        const { data, info } = await sharp(input)
+          .rotate()
+          .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
+          .jpeg({ quality: 80 })
+          .toBuffer({ resolveWithObject: true });
+        const blob = await put(`posts/${randomUUID()}.jpg`, data, {
+          access: "public",
+          contentType: "image/jpeg",
+          addRandomSuffix: false,
+        });
+        attachmentData.push({ url: blob.url, width: info.width, height: info.height });
+      }
+    }
+  }
+
   const author = await getCurrentUser();
   const post = await prisma.post.create({
     data: {
@@ -114,6 +157,9 @@ export async function createPost(
         : undefined,
       tags: tagIds.length
         ? { create: tagIds.map((tagId) => ({ tagId })) }
+        : undefined,
+      attachments: attachmentData.length
+        ? { create: attachmentData }
         : undefined,
     },
   });

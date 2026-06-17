@@ -39,6 +39,7 @@ export default async function PostDetailPage({
         pauseReactions: { include: { user: { select: { id: true, name: true } } } },
         sources: { orderBy: { createdAt: "asc" } },
         tags: { include: { tag: true } },
+        attachments: { orderBy: { createdAt: "asc" } },
       },
     }),
     getCurrentUser(),
@@ -101,6 +102,32 @@ export default async function PostDetailPage({
         <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
           {post.text}
         </p>
+
+        {post.attachments.length > 0 && (
+          <div
+            className={`mt-3 gap-2 ${
+              post.attachments.length === 1 ? "" : "grid grid-cols-2"
+            }`}
+          >
+            {post.attachments.map((a) => (
+              <a
+                key={a.id}
+                href={a.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={a.url}
+                  alt="Anhang"
+                  loading="lazy"
+                  className="w-full rounded-md border border-border-soft"
+                />
+              </a>
+            ))}
+          </div>
+        )}
 
         <p className="mt-4 flex items-center gap-1.5 text-xs text-muted">
           {!post.isPseudonym && (

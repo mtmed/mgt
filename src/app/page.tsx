@@ -39,6 +39,7 @@ export default async function HomePage({
       pauseReactions: { include: { user: { select: { id: true, name: true } } } },
       sources: { select: { relation: true } },
       tags: { include: { tag: { select: { slug: true, label: true } } } },
+      attachments: { select: { url: true }, take: 1, orderBy: { createdAt: "asc" } },
     },
   });
 
@@ -48,6 +49,7 @@ export default async function HomePage({
     status: p.status,
     isPseudonym: p.isPseudonym,
     title: p.title,
+    imageUrl: p.attachments[0]?.url ?? null,
     text: p.text,
     author: p.author,
     tags: p.tags.map((pt) => pt.tag),

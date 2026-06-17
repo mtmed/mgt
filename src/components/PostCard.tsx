@@ -12,6 +12,7 @@ export type FeedPost = {
   text: string;
   author: { id: string; name: string };
   title: string | null;
+  imageUrl: string | null;
   tags: { slug: string; label: string }[];
   answerCount: number;
   endorsementCount: number;
@@ -78,6 +79,16 @@ export function PostCard({ post }: { post: FeedPost }) {
       <p className="mt-1 text-sm leading-relaxed text-muted">
         {excerpt(post.text)}
       </p>
+
+      {post.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={post.imageUrl}
+          alt=""
+          loading="lazy"
+          className="mt-2 h-40 w-full rounded-md border border-border-soft object-cover"
+        />
+      )}
 
       {post.tags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">

@@ -53,7 +53,19 @@ model Post {
   sources        Source[]
   pauseReactions PauseReaction[]
   tags           PostTag[]
+  attachments    Attachment[]
   createdAt      DateTime        @default(now())
+}
+
+// Bild-Anhang (nicht-personenbezogen). EXIF wird beim Upload entfernt.
+model Attachment {
+  id        String   @id @default(cuid())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  url       String
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now())
 }
 
 enum TagCategory {
