@@ -4,6 +4,30 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createPost, type FormState } from "@/lib/actions";
 
+// Bild im Browser verkleinern (max. 1600 px) und als JPEG neu kodieren.
+// Das umgeht Vercels 4,5-MB-Upload-Grenze und entfernt EXIF schon am Gerät.
+async function resizeImage(file: File): Promise<Blob> {
+  const MAX = 1600;
+  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+  const w = Math.max(1, Math.round(bitmap.width * scale));
+  const h = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas-Kontext fehlt.");
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close?.();
+  return await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("Bildkonvertierung fehlgeschlagen."))),
+      "image/jpeg",
+      0.8,
+    ),
+  );
+}
+
 type Intent = "SEEK" | "GIVE" | "PAUSE";
 
 const INTENTS: {
@@ -36,17 +60,24 @@ const INTENTS: {
   },
 ];
 
-function SubmitButton({ accent }: { accent: "kobalt" | "terra" }) {
+function SubmitButton({
+  accent,
+  busy,
+}: {
+  accent: "kobalt" | "terra";
+  busy: boolean;
+}) {
   const { pending } = useFormStatus();
+  const disabled = pending || busy;
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={disabled}
       className={`rounded-md px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60 ${
         accent === "terra" ? "bg-terra" : "bg-kobalt"
       }`}
     >
-      {pending ? "Wird geteilt …" : "Teilen"}
+      {busy ? "Bilder werden verarbeitet …" : pending ? "Wird geteilt …" : "Teilen"}
     </button>
   );
 }
@@ -63,6 +94,7 @@ export function ComposeForm({
   labels?: Record<string, string>;
 }) {
   const [state, formAction] = useActionState(createPost, {} as FormState);
+  const [imagesBusy, setImagesBusy] = useState(false);
   const [intent, setIntent] = useState<Intent>(initialIntent);
   const [relation, setRelation] = useState<"MATCHES" | "EXCEEDS" | "DIVERGES">(
     "MATCHES",
@@ -89,6 +121,33 @@ export function ComposeForm({
     },
     { title: "Themenfelder", items: tags.filter((t) => t.category === "THEMA") },
   ];
+
+  // Beim Auswählen: Bilder verkleinern + EXIF entfernen und die verkleinerten
+  // Dateien zurück ins Feld schreiben — das Formular verschickt dann kleine JPEGs.
+  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const files = Array.from(input.files ?? []).slice(0, 3);
+    if (files.length === 0) return;
+    setImagesBusy(true);
+    try {
+      const dt = new DataTransfer();
+      for (const file of files) {
+        if (!file.type.startsWith("image/")) {
+          dt.items.add(file);
+          continue;
+        }
+        try {
+          const blob = await resizeImage(file);
+          dt.items.add(new File([blob], "image.jpg", { type: "image/jpeg" }));
+        } catch {
+          dt.items.add(file); // Fallback: Original
+        }
+      }
+      input.files = dt.files;
+    } finally {
+      setImagesBusy(false);
+    }
+  };
 
   return (
     <form action={formAction} className="space-y-4">
@@ -221,6 +280,7 @@ export function ComposeForm({
             type="file"
             accept="image/*"
             multiple
+            onChange={handleFiles}
             className="mt-1 block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-eisblau/40 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-kobalt"
           />
           <p className="mt-1 text-xs text-muted">
@@ -295,7 +355,7 @@ export function ComposeForm({
         </p>
       )}
 
-      <SubmitButton accent={active.accent} />
+      <SubmitButton accent={active.accent} busy={imagesBusy} />
     </form>
   );
 }
