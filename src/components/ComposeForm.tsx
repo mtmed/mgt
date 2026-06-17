@@ -81,8 +81,11 @@ export function ComposeForm({
     );
 
   const tagGroups: { title: string; items: Tag[] }[] = [
-    { title: "Vorsorge", items: tags.filter((t) => t.category === "VORSORGE") },
-    { title: "Themen", items: tags.filter((t) => t.category === "THEMA") },
+    {
+      title: "Untersuchung & Recht",
+      items: tags.filter((t) => t.category === "VORSORGE"),
+    },
+    { title: "Themenfelder", items: tags.filter((t) => t.category === "THEMA") },
   ];
 
   return (

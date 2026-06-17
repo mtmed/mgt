@@ -46,7 +46,7 @@ const POSTS: {
     status: "SOLVED",
     authorId: "u-mira",
     hoursAgo: 52,
-    text: "G37-Untersuchung: Ein Mitarbeiter braucht für die Bildschirmarbeit eine Gleitsichtbrille. Muss der Arbeitgeber die spezielle Bildschirmbrille zahlen — und wie grenze ich das sauber von der privaten Sehhilfe ab?",
+    text: "Bildschirm-Vorsorge (BS-V): Ein Mitarbeiter braucht für die Bildschirmarbeit eine Gleitsichtbrille. Muss der Arbeitgeber die spezielle Bildschirmbrille zahlen — und wie grenze ich das sauber von der privaten Sehhilfe ab?",
   },
   {
     id: "p02",
@@ -105,7 +105,7 @@ const POSTS: {
     isPseudonym: true,
     authorId: "u-amelie",
     hoursAgo: 18,
-    text: "Verdacht auf BK 2108 (bandscheibenbedingte LWS-Erkrankung) bei langjährigem Lagerarbeiter. Wie dokumentiert ihr die berufliche Belastung sauber für die Meldung?",
+    text: "Verdacht auf eine bandscheibenbedingte Berufskrankheit der LWS bei langjährigem Lagerarbeiter. Wie dokumentiert ihr die berufliche Belastung sauber für die Meldung an die AUVA?",
   },
   {
     id: "p10",
@@ -178,7 +178,7 @@ const ANSWERS: {
     postId: "p02",
     authorId: "u-mira",
     hoursAgo: 44,
-    text: "Anfallsfreiheit allein reicht mir nicht. Ich hole den aktuellen neurologischen Befund und die Medikation ein und orientiere mich an den Begutachtungsleitlinien. Bei echter Absturzgefahr bin ich sehr zurückhaltend.",
+    text: "Anfallsfreiheit allein reicht mir nicht. Ich hole den aktuellen neurologischen Befund und die Medikation ein und orientiere mich an den einschlägigen Eignungskriterien. Bei echter Absturzgefahr bin ich sehr zurückhaltend.",
   },
   {
     id: "a04",
@@ -199,7 +199,7 @@ const ANSWERS: {
     postId: "p07",
     authorId: "u-sofia",
     hoursAgo: 23,
-    text: "Individuelle GBU nach MuSchG — Nachtarbeit ist nicht automatisch verboten, aber zwischen 22 und 6 Uhr braucht es Bewilligung und die Zustimmung der Mitarbeiterin. In der Praxis ist die Umsetzung in den Tagdienst meist der pragmatische Weg.",
+    text: "Individuelle Gefährdungsbeurteilung nach MSchG — Nachtarbeit Schwangerer ist grundsätzlich unzulässig, mit Ausnahmebewilligung des Arbeitsinspektorats und Zustimmung der Mitarbeiterin. In der Praxis ist die Umsetzung in den Tagdienst meist der pragmatische Weg.",
   },
   {
     id: "a07",
@@ -213,7 +213,7 @@ const ANSWERS: {
     postId: "p09",
     authorId: "u-clara",
     hoursAgo: 17,
-    text: "Ich erfasse die Hebe- und Tragebelastung möglichst quantitativ (Mainz-Dortmunder Dosismodell, Jahre, Lasten) und melde bei begründetem Verdacht. Die eigentliche Kausalitätsprüfung macht ohnehin der Unfallversicherungsträger.",
+    text: "Ich erfasse die Hebe- und Tragebelastung möglichst quantitativ (Leitmerkmalmethode, Jahre, Lasten) und melde bei begründetem Verdacht. Die eigentliche Kausalitätsprüfung macht ohnehin die AUVA.",
   },
   {
     id: "a09",
@@ -260,26 +260,26 @@ const PAUSE_REACTIONS: { postId: string; users: string[] }[] = [
   { postId: "p14", users: others(["u-jonas"], 6) },
 ];
 
-// Kuratierte Starter-Taxonomie (zwei Achsen).
+// Kuratierte Starter-Taxonomie — Österreich (ASchG, VGÜ, Verordnungen, AUVA).
+// Achse VORSORGE = Untersuchung & Recht · Achse THEMA = Themenfelder.
 const TAGS: { slug: string; label: string; category: "VORSORGE" | "THEMA" }[] = [
-  { slug: "g20", label: "G20 Lärm", category: "VORSORGE" },
-  { slug: "g24", label: "G24 Hauterkrankungen", category: "VORSORGE" },
-  { slug: "g25", label: "G25 Fahr-/Steuertätigkeit", category: "VORSORGE" },
-  { slug: "g26", label: "G26 Atemschutz", category: "VORSORGE" },
-  { slug: "g37", label: "G37 Bildschirm", category: "VORSORGE" },
-  { slug: "g41", label: "G41 Absturzgefahr", category: "VORSORGE" },
-  { slug: "g42", label: "G42 Infektionskrankheiten", category: "VORSORGE" },
-  { slug: "g46", label: "G46 Muskel-Skelett-Belastung", category: "VORSORGE" },
+  { slug: "vgue", label: "Gesundheitsüberwachung (VGÜ)", category: "VORSORGE" },
+  { slug: "bildschirm", label: "Bildschirmarbeit (BS-V)", category: "VORSORGE" },
+  { slug: "nachtarbeit", label: "Nacht-/Schichtarbeit (NSchG)", category: "VORSORGE" },
+  { slug: "laerm-vibration", label: "Lärm & Vibrationen (VOLV)", category: "VORSORGE" },
+  { slug: "mutterschutz", label: "Mutterschutz (MSchG)", category: "VORSORGE" },
+  { slug: "evaluierung", label: "Arbeitsplatzevaluierung (ASchG)", category: "VORSORGE" },
+  { slug: "eignung", label: "Eignung & Tauglichkeit", category: "VORSORGE" },
+  { slug: "berufskrankheit", label: "Berufskrankheit (AUVA)", category: "VORSORGE" },
   { slug: "impfen", label: "Impfen & Infektionsschutz", category: "THEMA" },
-  { slug: "mutterschutz", label: "Mutterschutz", category: "THEMA" },
-  { slug: "gefahrstoffe", label: "Gefahrstoffe & Haut", category: "THEMA" },
-  { slug: "ergonomie", label: "Ergonomie & MSE", category: "THEMA" },
-  { slug: "psyche", label: "Psyche & BGM", category: "THEMA" },
-  { slug: "sucht", label: "Sucht", category: "THEMA" },
-  { slug: "berufskrankheiten", label: "Berufskrankheiten", category: "THEMA" },
+  { slug: "bio-arbeitsstoffe", label: "Biologische Arbeitsstoffe (VbA)", category: "THEMA" },
+  { slug: "gefahrstoffe", label: "Gefahrstoffe & Haut (GKV)", category: "THEMA" },
+  { slug: "ergonomie", label: "Ergonomie & Muskel-Skelett", category: "THEMA" },
+  { slug: "psyche", label: "Psychische Belastung & BGF", category: "THEMA" },
+  { slug: "sucht", label: "Sucht & Prävention", category: "THEMA" },
   { slug: "reisemedizin", label: "Reisemedizin", category: "THEMA" },
-  { slug: "bem", label: "Wiedereingliederung & BEM", category: "THEMA" },
-  { slug: "recht", label: "Recht & Datenschutz", category: "THEMA" },
+  { slug: "wiedereingliederung", label: "Wiedereingliederung (fit2work)", category: "THEMA" },
+  { slug: "recht-datenschutz", label: "Recht & Datenschutz", category: "THEMA" },
 ];
 
 // Titel nur für Fach (SEEK/GIVE) — Pause-Beiträge (p06/p10/p14) bleiben titellos.
@@ -291,7 +291,7 @@ const TITLES: Record<string, string> = {
   p05: "Hep-B-Non-Responder: erst Anti-HBc abklären",
   p07: "Schwangere im Nachtdienst: Verbot oder individuelle GBU?",
   p08: "Homeoffice-Ergonomie als 1-Seiten-Checkliste",
-  p09: "BK 2108 sauber dokumentieren – wie?",
+  p09: "Berufskrankheit (LWS): Meldung an die AUVA dokumentieren?",
   p11: "Drogenscreening: rechtliche Grenzen & Einwilligung",
   p12: "Stufenplan bei Wiedereingliederung konkret schreiben",
   p13: "Tropentauglichkeit & Malariaprophylaxe bei Entsendung",
@@ -299,16 +299,16 @@ const TITLES: Record<string, string> = {
 };
 
 const POST_TAGS: Record<string, string[]> = {
-  p01: ["g37"],
-  p02: ["g41"],
-  p03: ["g24", "gefahrstoffe"],
-  p04: ["g20"],
-  p05: ["impfen", "g42"],
-  p07: ["mutterschutz"],
-  p08: ["ergonomie", "g37"],
-  p09: ["berufskrankheiten", "g46"],
-  p11: ["sucht", "recht"],
-  p12: ["bem"],
+  p01: ["bildschirm"],
+  p02: ["eignung"],
+  p03: ["gefahrstoffe"],
+  p04: ["laerm-vibration"],
+  p05: ["impfen", "bio-arbeitsstoffe"],
+  p07: ["mutterschutz", "nachtarbeit"],
+  p08: ["ergonomie", "bildschirm"],
+  p09: ["berufskrankheit", "ergonomie"],
+  p11: ["sucht", "recht-datenschutz"],
+  p12: ["wiedereingliederung"],
   p13: ["reisemedizin", "impfen"],
 };
 
@@ -386,6 +386,11 @@ async function main() {
         create: { ...t, approved: true },
       });
     }
+    // Alte (deutsche) kuratierte Tags entfernen, die nicht mehr Teil der
+    // österreichischen Taxonomie sind (cascade löscht deren Verschlagwortungen).
+    await prisma.tag.deleteMany({
+      where: { approved: true, slug: { notIn: TAGS.map((t) => t.slug) } },
+    });
     const tagRows = await prisma.tag.findMany({ select: { id: true, slug: true } });
     const slugToId = new Map(tagRows.map((t) => [t.slug, t.id]));
     const postTagRows = Object.entries(POST_TAGS).flatMap(([postId, slugs]) =>

@@ -242,11 +242,16 @@ Konkretisierungen einiger §10-Punkte und neue Festlegungen aus der Roadmap:
 
 - **Titel:** **Pflicht im Fach-Register** (Frage/Fall & Info), **keiner im Pause-Register**
   (Titel widerspräche dem Leichten/Off-the-record).
-- **Tags:** **kuratiert/hybrid.** Zwei Achsen — *Vorsorge* (G-Grundsätze: G20, G24, G25,
-  G26, G37, G41, G42, G46) und *Themen* (Impfen, Mutterschutz, Gefahrstoffe/Haut,
-  Ergonomie/MSE, Psyche/BGM, Sucht, Berufskrankheiten, Reisemedizin, BEM, Recht/DSGVO).
-  Mehrfach-Tagging. „Neuen Tag vorschlagen“ → `approved=false`, Admin gibt frei.
-  Tags sind **Fakt/Struktur → Kobalt** (kein Anerkennungssignal).
+- **Tags:** **kuratiert/hybrid, Markt Österreich** (verankert in ASchG, VGÜ, Verordnungen, AUVA —
+  NICHT die deutschen G-Grundsätze). Zwei Achsen:
+  - *Untersuchung & Recht:* Gesundheitsüberwachung (VGÜ), Bildschirmarbeit (BS-V),
+    Nacht-/Schichtarbeit (NSchG), Lärm & Vibrationen (VOLV), Mutterschutz (MSchG),
+    Arbeitsplatzevaluierung (ASchG), Eignung & Tauglichkeit, Berufskrankheit (AUVA).
+  - *Themenfelder:* Impfen & Infektionsschutz, Biologische Arbeitsstoffe (VbA),
+    Gefahrstoffe & Haut (GKV), Ergonomie & Muskel-Skelett, Psychische Belastung & BGF,
+    Sucht & Prävention, Reisemedizin, Wiedereingliederung (fit2work), Recht & Datenschutz.
+  - Mehrfach-Tagging. „Neuen Tag vorschlagen“ → `approved=false`, Admin gibt frei.
+    Tags sind **Fakt/Struktur → Kobalt** (kein Anerkennungssignal).
 - **Fachlicher Korpus:** **eigener Reiter** neben Tag/Fach/Pause, tag-basiert, zeigt die
   gelösten Fälle/Infos (der durchsuchbare Korpus).
 - **Bild-Anhänge:** nur **nicht-personenbezogen** (Arbeitsplatz, Gefahrenstelle, Gerät) —
