@@ -77,10 +77,12 @@ export default async function RootLayout({
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <UserSwitcher
-                  users={SEED_USERS.map((u) => ({ id: u.id, name: u.name }))}
-                  currentId={current.id}
-                />
+                {current && (
+                  <UserSwitcher
+                    users={SEED_USERS.map((u) => ({ id: u.id, name: u.name }))}
+                    currentId={current.id}
+                  />
+                )}
                 <Link
                   href="/anmelden"
                   className="rounded-md bg-kobalt px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"

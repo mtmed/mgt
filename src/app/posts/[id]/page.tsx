@@ -49,25 +49,31 @@ export default async function PostDetailPage({
   if (!post) notFound();
 
   const answerIds = post.answers.map((a) => a.id);
-  const myEndorsements = await prisma.endorsement.findMany({
-    where: {
-      userId: current.id,
-      OR: [{ postId: id }, { answerId: { in: answerIds } }],
-    },
-    select: { postId: true, answerId: true },
-  });
+  const myEndorsements = current
+    ? await prisma.endorsement.findMany({
+        where: {
+          userId: current.id,
+          OR: [{ postId: id }, { answerId: { in: answerIds } }],
+        },
+        select: { postId: true, answerId: true },
+      })
+    : [];
   const myPostEndorsed = myEndorsements.some((e) => e.postId === id);
   const myAnswerEndorsed = new Set(
     myEndorsements.map((e) => e.answerId).filter(Boolean) as string[],
   );
 
-  const bookmark = await prisma.bookmark.findUnique({
-    where: { userId_postId: { userId: current.id, postId: id } },
-  });
+  const bookmark = current
+    ? await prisma.bookmark.findUnique({
+        where: { userId_postId: { userId: current.id, postId: id } },
+      })
+    : null;
 
   const isPause = post.intent === "PAUSE";
-  const isAuthor = post.authorId === current.id;
-  const iSmirked = post.pauseReactions.some((r) => r.userId === current.id);
+  const isAuthor = current ? post.authorId === current.id : false;
+  const iSmirked = current
+    ? post.pauseReactions.some((r) => r.userId === current.id)
+    : false;
 
   return (
     <div className="anim-in">

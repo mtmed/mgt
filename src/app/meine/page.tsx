@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/users";
@@ -45,6 +46,7 @@ export default async function MeinePage({
   const { show } = await searchParams;
   const saved = show === "saved";
   const me = await getCurrentUser();
+  if (!me) redirect("/anmelden");
 
   let posts: PostWithRelations[];
   if (saved) {

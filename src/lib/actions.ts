@@ -33,7 +33,7 @@ export async function createPost(
   formData: FormData,
 ): Promise<FormState> {
   const me = await getCurrentUser();
-  if (!me.approved) {
+  if (!me?.approved) {
     return { error: "Dein Zugang ist noch nicht freigeschaltet." };
   }
 
@@ -178,7 +178,7 @@ export async function createAnswer(
   formData: FormData,
 ): Promise<FormState> {
   const author = await getCurrentUser(); // Antworten immer namentlich
-  if (!author.approved) {
+  if (!author?.approved) {
     return { error: "Dein Zugang ist noch nicht freigeschaltet." };
   }
 
@@ -208,7 +208,7 @@ export async function toggleEndorsement(
   redirectPostId: string,
 ): Promise<void> {
   const user = await getCurrentUser();
-  if (!user.approved) return;
+  if (!user?.approved) return;
   const where = target.postId
     ? { userId_postId: { userId: user.id, postId: target.postId } }
     : { userId_answerId: { userId: user.id, answerId: target.answerId! } };
@@ -228,6 +228,7 @@ export async function toggleEndorsement(
 // „gelöst" — darf NUR der/die Fragende setzen (§5).
 export async function markSolved(postId: string): Promise<void> {
   const user = await getCurrentUser();
+  if (!user) return;
   const post = await prisma.post.findUnique({ where: { id: postId } });
   if (!post || post.authorId !== user.id || post.intent !== "SEEK") {
     return; // still ignorieren, kein Recht
@@ -243,7 +244,7 @@ export async function markSolved(postId: string): Promise<void> {
 // „haben geschmunzelt" — Toggle, nur für Pause-Beiträge. Keine Zahl, kein Gelb.
 export async function togglePauseReaction(postId: string): Promise<void> {
   const user = await getCurrentUser();
-  if (!user.approved) return;
+  if (!user?.approved) return;
   const post = await prisma.post.findUnique({ where: { id: postId } });
   if (!post || post.intent !== "PAUSE") return;
 
@@ -275,6 +276,7 @@ export async function acceptKodex(): Promise<void> {
 // Privates Lesezeichen — Toggle (kein öffentliches Signal).
 export async function toggleBookmark(postId: string): Promise<void> {
   const user = await getCurrentUser();
+  if (!user) return;
   const where = { userId_postId: { userId: user.id, postId } };
   const existing = await prisma.bookmark.findUnique({ where });
   if (existing) {

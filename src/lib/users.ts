@@ -33,12 +33,20 @@ export async function getSessionUser(): Promise<User | null> {
 }
 
 /**
- * Aktive:r Nutzer:in: bevorzugt echte Session, sonst Dev-Umschalter (Cookie).
- * Der Fallback verschwindet, sobald echtes Login scharf ist.
+ * Aktive:r Nutzer:in: echte Session, sonst (NUR in der Entwicklung) der
+ * Cookie-Umschalter. In Production gibt es ohne Anmeldung keine Identität
+ * (verhindert „als Mira posten" ohne Login).
  */
-export async function getCurrentUser(): Promise<User> {
+export async function getCurrentUser(): Promise<User | null> {
   const sessionUser = await getSessionUser();
   if (sessionUser) return sessionUser;
+
+  // Dev-Umschalter-Fallback nur, solange Login NICHT aktiv ist (lokal immer; in
+  // Production nur bis AUTH_SECRET gesetzt ist). Verhindert „als Mira posten"
+  // ohne Anmeldung, sobald echtes Login scharf ist.
+  const fallbackAllowed =
+    process.env.NODE_ENV !== "production" || !process.env.AUTH_SECRET;
+  if (!fallbackAllowed) return null;
 
   const cookieStore = await cookies();
   const uid = cookieStore.get(COOKIE_NAME)?.value;
