@@ -136,8 +136,8 @@ Erste Frage beim Schreiben: **„Was möchtest du tun?“**
 
 | Intent | Bedeutung | Akzent | Folge |
 |---|---|---|---|
-| **Input holen** | Frage oder Fall | `--kobalt` | später als `gelöst` markierbar; **Pseudonym-Schalter** verfügbar |
-| **Input geben** | Info teilen | `--kobalt` | **Quelle anhängen** + Beziehung wählen (s. §7) |
+| **Frage** | Frage oder Fall | `--kobalt` | später als `gelöst` markierbar; **Pseudonym-Schalter** verfügbar |
+| **Info** | Wissen teilen | `--kobalt` | **Quelle anhängen** + Beziehung wählen (s. §7) |
 | **Pause** | leicht & menschlich | `--terra` | Fläche erwärmt; kein Gelb, keine Zahl |
 
 - **Pseudonym-Schalter** (nur „Input holen“): Label „Pseudonym fragen“. Hinweis: „Fragen dürfen anonym sein — Antworten sind immer namentlich.“
@@ -190,7 +190,7 @@ Divergenz wird **nicht erkannt, sondern erklärt** — keine zentrale Instanz ur
 | Quelle | belegt |
 | Tag / Fach / Pause | Gemischt |
 | gelöst | erledigt · beantwortet |
-| Input holen / Input geben | (technische Typennamen im UI) |
+| Frage / Info (Compose-Intents) | (technische Typennamen im UI) |
 | haben geschmunzelt | gefällt mir · 👍 |
 
 ---

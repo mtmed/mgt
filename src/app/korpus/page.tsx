@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { FeedTabs } from "@/components/FeedTabs";
 import { KorpusFilters } from "@/components/KorpusFilters";
 import { PostCard, type FeedPost } from "@/components/PostCard";
+import { isAdmin } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Korpus · bada bup" };
@@ -22,7 +23,7 @@ export default async function KorpusPage({
     ? { intent: "SEEK", status: "SOLVED" }
     : { OR: [{ intent: "SEEK", status: "SOLVED" }, { intent: "GIVE" }] };
 
-  const and: Prisma.PostWhereInput[] = [base];
+  const and: Prisma.PostWhereInput[] = [{ hidden: false }, base];
   if (tag) and.push({ tags: { some: { tag: { slug: tag } } } });
   if (q) {
     and.push({
@@ -33,7 +34,7 @@ export default async function KorpusPage({
     });
   }
 
-  const [posts, tags] = await Promise.all([
+  const [posts, tags, admin] = await Promise.all([
     prisma.post.findMany({
       where: { AND: and },
       orderBy: { createdAt: "desc" },
@@ -53,6 +54,7 @@ export default async function KorpusPage({
       orderBy: [{ category: "asc" }, { label: "asc" }],
       select: { slug: true, label: true },
     }),
+    isAdmin(),
   ]);
 
   const feed: FeedPost[] = posts.map((p) => ({
@@ -91,7 +93,7 @@ export default async function KorpusPage({
         ) : (
           feed.map((post) => (
             <li key={post.id} className="feed-item">
-              <PostCard post={post} />
+              <PostCard post={post} admin={admin} />
             </li>
           ))
         )}

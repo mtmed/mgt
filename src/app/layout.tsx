@@ -17,6 +17,7 @@ import { Onboarding } from "@/components/Onboarding";
 import { ComposeBar } from "@/components/ComposeBar";
 import { getCurrentUser, getSessionUser, SEED_USERS } from "@/lib/users";
 import { getLabels } from "@/lib/labels";
+import { isAdmin } from "@/lib/admin";
 import { signOut } from "@/auth";
 import "./globals.css";
 
@@ -34,13 +35,14 @@ export const viewport: Viewport = { themeColor: "#1E46E0" };
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [current, sessionUser, labels, cookieStore] = await Promise.all([
+  const [current, sessionUser, labels, cookieStore, admin] = await Promise.all([
     getCurrentUser(),
     getSessionUser(),
     getLabels(),
     cookies(),
+    isAdmin(),
   ]);
-  const loggedOut = !current;
+  const loggedOut = !current && !admin;
   const kodexAccepted = cookieStore.get("kodex_ack")?.value === "1";
 
   return (
@@ -89,7 +91,7 @@ export default async function RootLayout({
                     </form>
                     <UserMenu user={{ id: sessionUser.id, name: sessionUser.name }} />
                   </div>
-                ) : (
+                ) : current ? (
                   <div className="flex items-center gap-2">
                     <UserSwitcher
                       users={SEED_USERS.map((u) => ({ id: u.id, name: u.name }))}
@@ -97,6 +99,13 @@ export default async function RootLayout({
                     />
                     <UserMenu user={{ id: current.id, name: current.name }} />
                   </div>
+                ) : (
+                  <Link
+                    href="/admin"
+                    className="rounded-md border border-border-soft px-3 py-1.5 text-xs font-semibold hover:border-kobalt/40"
+                  >
+                    Admin
+                  </Link>
                 )}
               </div>
             </header>
@@ -111,7 +120,7 @@ export default async function RootLayout({
               </div>
             </footer>
 
-            <ComposeBar />
+            {current && <ComposeBar />}
           </>
         )}
       </body>

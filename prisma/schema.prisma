@@ -87,6 +87,7 @@ model Post {
   intent         Intent
   status         PostStatus      @default(OPEN)
   isPseudonym    Boolean         @default(false) // nur bei SEEK erlaubt
+  hidden         Boolean         @default(false) // von Admin ausgeblendet
   title          String? // Pflicht für Fach (SEEK/GIVE), keiner im Pause-Register
   text           String
   author         User            @relation(fields: [authorId], references: [id])

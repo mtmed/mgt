@@ -68,6 +68,31 @@ export async function rejectTag(formData: FormData): Promise<void> {
   revalidatePath("/admin");
 }
 
+// Moderation: Beitrag ausblenden / wiederherstellen / endgültig löschen.
+export async function hidePost(formData: FormData): Promise<void> {
+  if (!(await isAdmin())) return;
+  const id = String(formData.get("postId") ?? "");
+  if (id) await prisma.post.update({ where: { id }, data: { hidden: true } });
+  revalidatePath("/", "layout");
+  revalidatePath("/admin");
+}
+
+export async function unhidePost(formData: FormData): Promise<void> {
+  if (!(await isAdmin())) return;
+  const id = String(formData.get("postId") ?? "");
+  if (id) await prisma.post.update({ where: { id }, data: { hidden: false } });
+  revalidatePath("/", "layout");
+  revalidatePath("/admin");
+}
+
+export async function deletePost(formData: FormData): Promise<void> {
+  if (!(await isAdmin())) return;
+  const id = String(formData.get("postId") ?? "");
+  if (id) await prisma.post.delete({ where: { id } });
+  revalidatePath("/", "layout");
+  revalidatePath("/admin");
+}
+
 // Nutzer:in freischalten (manuelle Freigabe — Kern des Identitäts-Modells).
 export async function approveUser(formData: FormData): Promise<void> {
   if (!(await isAdmin())) return;

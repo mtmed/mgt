@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/users";
+import { isAdmin } from "@/lib/admin";
+import { hidePost, unhidePost } from "@/lib/admin-actions";
 import { typeLabel } from "@/lib/post";
 import { Avatar } from "@/components/Avatar";
 import { AnswersSection } from "@/components/AnswersSection";
@@ -24,7 +26,7 @@ export default async function PostDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [post, current] = await Promise.all([
+  const [post, current, admin] = await Promise.all([
     prisma.post.findUnique({
       where: { id },
       include: {
@@ -44,9 +46,10 @@ export default async function PostDetailPage({
       },
     }),
     getCurrentUser(),
+    isAdmin(),
   ]);
 
-  if (!post) notFound();
+  if (!post || (post.hidden && !admin)) notFound();
 
   const answerIds = post.answers.map((a) => a.id);
   const myEndorsements = current
@@ -80,6 +83,20 @@ export default async function PostDetailPage({
       <Link href="/" className="text-sm text-kobalt hover:underline">
         ← Zurück zum Feed
       </Link>
+
+      {admin && (
+        <div className="mt-2 flex items-center justify-between gap-2 rounded-md border border-border-soft bg-white px-3 py-2 text-xs">
+          <span className="text-muted">
+            {post.hidden ? "Ausgeblendet (nur für Admin sichtbar)" : "Admin-Moderation"}
+          </span>
+          <form action={post.hidden ? unhidePost : hidePost}>
+            <input type="hidden" name="postId" value={post.id} />
+            <button className="rounded-md border border-border-soft px-2 py-1 font-medium hover:text-ink">
+              {post.hidden ? "Wiederherstellen" : "Ausblenden"}
+            </button>
+          </form>
+        </div>
+      )}
 
       <article
         className={`mt-2 p-5 ${

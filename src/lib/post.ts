@@ -7,9 +7,9 @@ export function registerOf(intent: Intent): Register {
   return intent === "PAUSE" ? "PAUSE" : "FACH";
 }
 
-// Typ-Label (UI): Frage/Fall vs. Info. Pause hat kein Typ-Label.
-export function typeLabel(intent: Intent): "Fall" | "Info" | null {
-  if (intent === "SEEK") return "Fall";
+// Typ-Label (UI): Frage vs. Info. Pause hat kein Typ-Label.
+export function typeLabel(intent: Intent): "Frage" | "Info" | null {
+  if (intent === "SEEK") return "Frage";
   if (intent === "GIVE") return "Info";
   return null;
 }

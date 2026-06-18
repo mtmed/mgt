@@ -5,9 +5,11 @@ import {
   adminLogout,
   approveTag,
   approveUser,
+  deletePost,
   rejectTag,
   revokeUser,
   saveLabels,
+  unhidePost,
 } from "@/lib/admin-actions";
 import { getLabels, LABEL_DEFS } from "@/lib/labels";
 import { AdminLogin } from "@/components/AdminLogin";
@@ -80,6 +82,7 @@ export default async function AdminPage({
     pendingTags,
     pendingUsers,
     approvedMembers,
+    hiddenPosts,
     seekWithFirst,
     labels,
   ] = await Promise.all([
@@ -107,6 +110,11 @@ export default async function AdminPage({
       where: { approved: true, email: { not: null } },
       orderBy: { name: "asc" },
       select: { id: true, name: true, email: true },
+    }),
+    prisma.post.findMany({
+      where: { hidden: true },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, title: true, text: true },
     }),
     prisma.post.findMany({
       where: { intent: "SEEK" },
@@ -241,6 +249,41 @@ export default async function AdminPage({
             ))}
           </ul>
         </details>
+      )}
+
+      {/* Ausgeblendete Beiträge */}
+      <h2 className="mt-8 mb-2 text-lg font-semibold">
+        Ausgeblendete Beiträge ({hiddenPosts.length})
+      </h2>
+      {hiddenPosts.length === 0 ? (
+        <p className="text-sm text-muted">Keine ausgeblendeten Beiträge.</p>
+      ) : (
+        <ul className="space-y-2">
+          {hiddenPosts.map((p) => (
+            <li
+              key={p.id}
+              className="flex items-center justify-between gap-3 rounded-md border border-border-soft bg-white p-3"
+            >
+              <span className="min-w-0 truncate text-sm">
+                {p.title ?? p.text.slice(0, 60)}
+              </span>
+              <span className="flex shrink-0 gap-2">
+                <form action={unhidePost}>
+                  <input type="hidden" name="postId" value={p.id} />
+                  <button className="rounded-md border border-kobalt px-2 py-1 text-xs font-semibold text-kobalt hover:bg-eisblau/30">
+                    Wiederherstellen
+                  </button>
+                </form>
+                <form action={deletePost}>
+                  <input type="hidden" name="postId" value={p.id} />
+                  <button className="rounded-md border border-border-soft px-2 py-1 text-xs text-red-600 hover:bg-red-50">
+                    Löschen
+                  </button>
+                </form>
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
 
       {/* Vorgeschlagene Tags */}

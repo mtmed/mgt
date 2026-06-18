@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Intent, PostStatus } from "@prisma/client";
 import { Avatar } from "@/components/Avatar";
 import { ConsensusBand } from "@/components/ConsensusBand";
+import { hidePost } from "@/lib/admin-actions";
 import { typeLabel } from "@/lib/post";
 
 export type FeedPost = {
@@ -25,11 +26,29 @@ function excerpt(text: string, max = 180) {
   return text.length > max ? text.slice(0, max).trimEnd() + " …" : text;
 }
 
-export function PostCard({ post }: { post: FeedPost }) {
+export function PostCard({
+  post,
+  admin = false,
+}: {
+  post: FeedPost;
+  admin?: boolean;
+}) {
   const isPause = post.intent === "PAUSE";
+
+  const adminBar = admin ? (
+    <div className="mt-1 flex justify-end">
+      <form action={hidePost}>
+        <input type="hidden" name="postId" value={post.id} />
+        <button className="rounded-md px-2 py-0.5 text-xs text-muted transition hover:text-ink">
+          ausblenden
+        </button>
+      </form>
+    </div>
+  ) : null;
 
   if (isPause) {
     return (
+      <div>
       <Link
         href={`/posts/${post.id}`}
         className="block rounded-[18px] border border-dashed border-border-pause bg-sand p-4"
@@ -53,11 +72,14 @@ export function PostCard({ post }: { post: FeedPost }) {
           )}
         </div>
       </Link>
+        {adminBar}
+      </div>
     );
   }
 
   const tLabel = typeLabel(post.intent);
   return (
+    <div>
     <Link
       href={`/posts/${post.id}`}
       className="block rounded-[12px] border border-border-soft border-l-[3px] border-l-kobalt bg-card-fach p-4 hover:shadow-sm"
@@ -129,5 +151,7 @@ export function PostCard({ post }: { post: FeedPost }) {
         )}
       </div>
     </Link>
+      {adminBar}
+    </div>
   );
 }

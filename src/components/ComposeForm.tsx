@@ -40,15 +40,15 @@ const INTENTS: {
 }[] = [
   {
     value: "SEEK",
-    label: "Input holen",
+    label: "Frage",
     hint: "Frage oder Fall",
     placeholder: "Schildere deine Frage oder deinen Fall …",
     accent: "kobalt",
   },
   {
     value: "GIVE",
-    label: "Input geben",
-    hint: "Info teilen",
+    label: "Info",
+    hint: "Wissen teilen",
     placeholder: "Teile dein Vorgehen oder Wissen …",
     accent: "kobalt",
   },

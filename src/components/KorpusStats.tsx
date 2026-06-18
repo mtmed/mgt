@@ -4,9 +4,13 @@ import { prisma } from "@/lib/prisma";
 // nie individuell, kein Ranking, keine Views/Reichweite. Nur das gemeinsame Werk.
 export async function KorpusStats() {
   const [solvedCases, sharedInfos, activeTopics] = await Promise.all([
-    prisma.post.count({ where: { intent: "SEEK", status: "SOLVED" } }),
-    prisma.post.count({ where: { intent: "GIVE" } }),
-    prisma.tag.count({ where: { approved: true, posts: { some: {} } } }),
+    prisma.post.count({
+      where: { intent: "SEEK", status: "SOLVED", hidden: false },
+    }),
+    prisma.post.count({ where: { intent: "GIVE", hidden: false } }),
+    prisma.tag.count({
+      where: { approved: true, posts: { some: { post: { hidden: false } } } },
+    }),
   ]);
 
   return (

@@ -25,14 +25,14 @@ export function ComposeBar() {
                 onClick={() => setOpen(false)}
                 className="block px-4 py-2.5 text-sm font-medium text-kobalt hover:bg-eisblau/20"
               >
-                Input holen
+                Frage
               </Link>
               <Link
                 href="/compose?intent=GIVE"
                 onClick={() => setOpen(false)}
                 className="block px-4 py-2.5 text-sm font-medium text-kobalt hover:bg-eisblau/20"
               >
-                Input geben
+                Info
               </Link>
               <Link
                 href="/compose?intent=PAUSE"

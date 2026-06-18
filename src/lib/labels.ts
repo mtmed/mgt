@@ -11,10 +11,10 @@ export type LabelDef = {
 export const LABEL_DEFS: LabelDef[] = [
   { key: "footer", group: "Allgemein", desc: "Fußzeile", def: "Antworten sind immer namentlich." },
   { key: "feed_empty", group: "Feed", desc: "Leerer Feed", def: "Noch nichts hier. Mach den Anfang." },
-  { key: "intent_seek_label", group: "Beitrag erstellen", desc: "Input holen — Titel", def: "Input holen" },
-  { key: "intent_seek_hint", group: "Beitrag erstellen", desc: "Input holen — Unterzeile", def: "Frage oder Fall" },
-  { key: "intent_give_label", group: "Beitrag erstellen", desc: "Input geben — Titel", def: "Input geben" },
-  { key: "intent_give_hint", group: "Beitrag erstellen", desc: "Input geben — Unterzeile", def: "Info teilen" },
+  { key: "intent_seek_label", group: "Beitrag erstellen", desc: "Frage — Titel", def: "Frage" },
+  { key: "intent_seek_hint", group: "Beitrag erstellen", desc: "Frage — Unterzeile", def: "Frage oder Fall" },
+  { key: "intent_give_label", group: "Beitrag erstellen", desc: "Info — Titel", def: "Info" },
+  { key: "intent_give_hint", group: "Beitrag erstellen", desc: "Info — Unterzeile", def: "Wissen teilen" },
   { key: "intent_pause_label", group: "Beitrag erstellen", desc: "Pause — Titel", def: "Pause" },
   { key: "intent_pause_hint", group: "Beitrag erstellen", desc: "Pause — Unterzeile", def: "leicht & menschlich" },
 ];

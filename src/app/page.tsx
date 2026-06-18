@@ -8,6 +8,7 @@ import { SortControl, type SortKey } from "@/components/SortControl";
 import { isValidTab, type FeedTab } from "@/lib/post";
 import { getLabels } from "@/lib/labels";
 import { getCurrentUser } from "@/lib/users";
+import { isAdmin } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +26,8 @@ export default async function HomePage({
 }) {
   // Nicht angemeldet → Landing (nur in Production ohne Session; im Dev greift
   // der Fallback-Nutzer, dann zeigt sich der Feed).
-  const me = await getCurrentUser();
-  if (!me) return <Landing />;
+  const [me, admin] = await Promise.all([getCurrentUser(), isAdmin()]);
+  if (!me && !admin) return <Landing />;
 
   const { tab: rawTab, sort: rawSort } = await searchParams;
   const tab: FeedTab = isValidTab(rawTab) ? rawTab : "tag";
@@ -35,10 +36,10 @@ export default async function HomePage({
 
   const where: Prisma.PostWhereInput =
     tab === "fach"
-      ? { intent: { in: ["SEEK", "GIVE"] } }
+      ? { hidden: false, intent: { in: ["SEEK", "GIVE"] } }
       : tab === "pause"
-        ? { intent: "PAUSE" }
-        : {};
+        ? { hidden: false, intent: "PAUSE" }
+        : { hidden: false };
 
   const [posts, labels] = await Promise.all([
     prisma.post.findMany({
@@ -126,7 +127,7 @@ export default async function HomePage({
         ) : (
           feed.map((post) => (
             <li key={post.id} className="feed-item">
-              <PostCard post={post} />
+              <PostCard post={post} admin={admin} />
             </li>
           ))
         )}

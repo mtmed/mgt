@@ -51,14 +51,14 @@ export default async function MeinePage({
   let posts: PostWithRelations[];
   if (saved) {
     const bookmarks = await prisma.bookmark.findMany({
-      where: { userId: me.id },
+      where: { userId: me.id, post: { hidden: false } },
       orderBy: { createdAt: "desc" },
       include: { post: { include: postInclude } },
     });
     posts = bookmarks.map((b) => b.post);
   } else {
     posts = await prisma.post.findMany({
-      where: { authorId: me.id },
+      where: { authorId: me.id, hidden: false },
       orderBy: { createdAt: "desc" },
       include: postInclude,
     });

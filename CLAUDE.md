@@ -89,7 +89,7 @@ Verhalten; `CLAUDE_CODE_BRIEF.md` ist der Arbeitsauftrag. Vor Code IMMER lesen. 
 - `Quelle` ✅ — ❌ „belegt“
 - `Tag / Fach / Pause` ✅ — ❌ „Gemischt“
 - `gelöst` ✅ — ❌ „erledigt“, „beantwortet“
-- `Input holen / Input geben` ✅ — ❌ technische Typennamen im UI
+- `Frage / Info` ✅ (Compose-Intents; früher „Input holen/geben") — ❌ technische Typennamen im UI
 - `haben geschmunzelt` ✅ — ❌ „gefällt mir“, „👍“
 
 ---
