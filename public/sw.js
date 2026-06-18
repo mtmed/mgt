@@ -2,8 +2,8 @@
 // Zweck: Installierbarkeit (Home-Bildschirm, Vollbild). Noch KEIN Push.
 // Strategie: network-first mit Cache-Fallback für die App-Hülle.
 
-const CACHE = "bada-bup-shell-v1";
-const SHELL = ["/", "/manifest.webmanifest", "/icon.svg"];
+const CACHE = "bada-bup-shell-v2";
+const SHELL = ["/", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

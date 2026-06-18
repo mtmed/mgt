@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "Berufszentrierte Wissensplattform — Menschen und ihr Können im Mittelpunkt.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "bada bup" },
-  icons: { icon: "/icon.svg", apple: "/icons/apple-touch-icon.png" },
+  icons: { icon: "/logo.png", apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = { themeColor: "#1E46E0" };
@@ -64,7 +64,7 @@ export default async function RootLayout({
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src="/icon.svg"
+                    src="/logo.png"
                     alt=""
                     width={28}
                     height={28}

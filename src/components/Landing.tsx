@@ -6,7 +6,7 @@ export function Landing() {
     <div className="anim-in mx-auto flex min-h-[80vh] max-w-md flex-col items-center justify-center px-4 text-center">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/icon.svg"
+        src="/logo.png"
         alt="bada bup"
         width={92}
         height={92}
