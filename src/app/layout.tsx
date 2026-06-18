@@ -4,8 +4,9 @@ import { cookies } from "next/headers";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { UserSwitcher } from "@/components/UserSwitcher";
 import { Onboarding } from "@/components/Onboarding";
-import { getCurrentUser, SEED_USERS } from "@/lib/users";
+import { getCurrentUser, getSessionUser, SEED_USERS } from "@/lib/users";
 import { getLabels } from "@/lib/labels";
+import { signOut } from "@/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -33,8 +34,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [current, labels, cookieStore] = await Promise.all([
+  const [current, sessionUser, labels, cookieStore] = await Promise.all([
     getCurrentUser(),
+    getSessionUser(),
     getLabels(),
     cookies(),
   ]);
@@ -52,10 +54,41 @@ export default async function RootLayout({
               <img src="/icon.svg" alt="" width={28} height={28} className="rounded-[7px]" />
               bada bup
             </Link>
-            <UserSwitcher
-              users={SEED_USERS.map((u) => ({ id: u.id, name: u.name }))}
-              currentId={current.id}
-            />
+            {sessionUser ? (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="hidden max-w-[10rem] truncate sm:inline">
+                  {sessionUser.name}
+                </span>
+                {!sessionUser.approved && (
+                  <span className="rounded-full bg-diverg-bg px-2 py-0.5 text-xs text-diverg-fg">
+                    in Prüfung
+                  </span>
+                )}
+                <form
+                  action={async () => {
+                    "use server";
+                    await signOut({ redirectTo: "/" });
+                  }}
+                >
+                  <button className="rounded-md border border-border-soft px-2 py-1 text-xs hover:border-kobalt/40">
+                    Abmelden
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <UserSwitcher
+                  users={SEED_USERS.map((u) => ({ id: u.id, name: u.name }))}
+                  currentId={current.id}
+                />
+                <Link
+                  href="/anmelden"
+                  className="rounded-md bg-kobalt px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+                >
+                  Anmelden
+                </Link>
+              </div>
+            )}
           </div>
         </header>
         <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">

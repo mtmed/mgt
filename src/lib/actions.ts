@@ -32,6 +32,11 @@ export async function createPost(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const me = await getCurrentUser();
+  if (!me.approved) {
+    return { error: "Dein Zugang ist noch nicht freigeschaltet." };
+  }
+
   const parsed = createPostSchema.safeParse({
     intent: formData.get("intent"),
     title: formData.get("title"),
@@ -137,7 +142,7 @@ export async function createPost(
     }
   }
 
-  const author = await getCurrentUser();
+  const author = me;
   const post = await prisma.post.create({
     data: {
       intent: parsed.data.intent,
@@ -172,6 +177,11 @@ export async function createAnswer(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const author = await getCurrentUser(); // Antworten immer namentlich
+  if (!author.approved) {
+    return { error: "Dein Zugang ist noch nicht freigeschaltet." };
+  }
+
   const parsed = createAnswerSchema.safeParse({
     postId: formData.get("postId"),
     text: formData.get("text"),
@@ -179,8 +189,6 @@ export async function createAnswer(
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Ungültige Eingabe." };
   }
-
-  const author = await getCurrentUser(); // Antworten immer namentlich
   await prisma.answer.create({
     data: {
       text: parsed.data.text,
@@ -200,6 +208,7 @@ export async function toggleEndorsement(
   redirectPostId: string,
 ): Promise<void> {
   const user = await getCurrentUser();
+  if (!user.approved) return;
   const where = target.postId
     ? { userId_postId: { userId: user.id, postId: target.postId } }
     : { userId_answerId: { userId: user.id, answerId: target.answerId! } };
@@ -234,6 +243,7 @@ export async function markSolved(postId: string): Promise<void> {
 // „haben geschmunzelt" — Toggle, nur für Pause-Beiträge. Keine Zahl, kein Gelb.
 export async function togglePauseReaction(postId: string): Promise<void> {
   const user = await getCurrentUser();
+  if (!user.approved) return;
   const post = await prisma.post.findUnique({ where: { id: postId } });
   if (!post || post.intent !== "PAUSE") return;
 

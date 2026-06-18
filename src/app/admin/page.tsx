@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { adminConfigured, isAdmin } from "@/lib/admin";
-import { adminLogout, approveTag, rejectTag, saveLabels } from "@/lib/admin-actions";
+import {
+  adminLogout,
+  approveTag,
+  approveUser,
+  rejectTag,
+  revokeUser,
+  saveLabels,
+} from "@/lib/admin-actions";
 import { getLabels, LABEL_DEFS } from "@/lib/labels";
 import { AdminLogin } from "@/components/AdminLogin";
 
@@ -71,6 +78,8 @@ export default async function AdminPage({
     answerers,
     tagCounts,
     pendingTags,
+    pendingUsers,
+    approvedMembers,
     seekWithFirst,
     labels,
   ] = await Promise.all([
@@ -89,6 +98,16 @@ export default async function AdminPage({
       select: { label: true, _count: { select: { posts: true } } },
     }),
     prisma.tag.findMany({ where: { approved: false }, orderBy: { createdAt: "desc" } }),
+    prisma.user.findMany({
+      where: { approved: false },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, name: true, email: true, createdAt: true },
+    }),
+    prisma.user.findMany({
+      where: { approved: true, email: { not: null } },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, email: true },
+    }),
     prisma.post.findMany({
       where: { intent: "SEEK" },
       select: {
@@ -164,6 +183,65 @@ export default async function AdminPage({
           ))
         )}
       </div>
+
+      {/* Nutzer freischalten */}
+      <h2 className="mt-8 mb-2 text-lg font-semibold">
+        Zugänge freischalten ({pendingUsers.length})
+      </h2>
+      <p className="mb-3 text-xs text-muted">
+        Neue Anmeldungen warten auf manuelle Freigabe. {approvedMembers.length}{" "}
+        Mitglied(er) freigeschaltet.
+      </p>
+      {pendingUsers.length === 0 ? (
+        <p className="text-sm text-muted">Keine offenen Anmeldungen.</p>
+      ) : (
+        <ul className="space-y-2">
+          {pendingUsers.map((u) => (
+            <li
+              key={u.id}
+              className="flex items-center justify-between gap-3 rounded-md border border-border-soft bg-white p-3"
+            >
+              <span className="min-w-0 text-sm">
+                <span className="font-medium">{u.name}</span>{" "}
+                <span className="text-muted">{u.email ?? "(keine E-Mail)"}</span>
+              </span>
+              <form action={approveUser}>
+                <input type="hidden" name="userId" value={u.id} />
+                <button className="shrink-0 rounded-md border border-kobalt px-2 py-1 text-xs font-semibold text-kobalt hover:bg-eisblau/30">
+                  Freischalten
+                </button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {approvedMembers.length > 0 && (
+        <details className="mt-3">
+          <summary className="cursor-pointer text-sm text-muted hover:text-ink">
+            Freigeschaltete Mitglieder ({approvedMembers.length})
+          </summary>
+          <ul className="mt-2 space-y-2">
+            {approvedMembers.map((u) => (
+              <li
+                key={u.id}
+                className="flex items-center justify-between gap-3 rounded-md border border-border-soft bg-white p-3"
+              >
+                <span className="min-w-0 text-sm">
+                  <span className="font-medium">{u.name}</span>{" "}
+                  <span className="text-muted">{u.email}</span>
+                </span>
+                <form action={revokeUser}>
+                  <input type="hidden" name="userId" value={u.id} />
+                  <button className="shrink-0 rounded-md border border-border-soft px-2 py-1 text-xs text-muted hover:text-ink">
+                    Freigabe zurücknehmen
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
       {/* Vorgeschlagene Tags */}
       <h2 className="mt-8 mb-2 text-lg font-semibold">

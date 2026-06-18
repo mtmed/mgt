@@ -28,16 +28,58 @@ enum SourceRelation {
 }
 
 model User {
-  id             String          @id @default(cuid())
-  name           String
-  role           String // z. B. "Arbeitsmediziner:in"
-  approved       Boolean         @default(false) // manuelle Freischaltung (MVP)
-  createdAt      DateTime        @default(now())
+  id            String    @id @default(cuid())
+  name          String
+  role          String    @default("Arbeitsmediziner:in")
+  approved      Boolean   @default(false) // manuelle Freischaltung durch Admin
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+
   posts          Post[]
   answers        Answer[]
   endorsements   Endorsement[]
   pauseReactions PauseReaction[]
   bookmarks      Bookmark[]
+  accounts       Account[]
+  sessions       Session[]
+}
+
+// Auth.js (NextAuth v5) — Standardmodelle für den Prisma-Adapter.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Post {

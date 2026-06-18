@@ -67,3 +67,21 @@ export async function rejectTag(formData: FormData): Promise<void> {
   if (id) await prisma.tag.delete({ where: { id } });
   revalidatePath("/admin");
 }
+
+// Nutzer:in freischalten (manuelle Freigabe — Kern des Identitäts-Modells).
+export async function approveUser(formData: FormData): Promise<void> {
+  if (!(await isAdmin())) return;
+  const id = String(formData.get("userId") ?? "");
+  if (id) await prisma.user.update({ where: { id }, data: { approved: true } });
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+}
+
+// Freigabe zurücknehmen.
+export async function revokeUser(formData: FormData): Promise<void> {
+  if (!(await isAdmin())) return;
+  const id = String(formData.get("userId") ?? "");
+  if (id) await prisma.user.update({ where: { id }, data: { approved: false } });
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+}
