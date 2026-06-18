@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import type { FeedTab } from "@/lib/post";
 
-// Ein Feed, vier Linsen — als „Browser-Tabs" (aktiver Tab verschmilzt mit der
-// Fläche darunter). Werte (tag/fach/pause/korpus) bleiben fürs Routing.
+// Ein Feed, vier Linsen — als „Browser-Tabs". Optimistisch: der geklickte Reiter
+// wird SOFORT aktiv markiert, der Inhalt lädt im Hintergrund.
 const TABS: {
   value: FeedTab;
   label: string;
@@ -39,14 +42,18 @@ const TABS: {
 ];
 
 export function FeedTabs({ active }: { active: FeedTab }) {
+  const [target, setTarget] = useState<FeedTab | null>(null);
+  const shown = target ?? active;
+
   return (
     <nav className="flex gap-1 overflow-x-auto border-b border-border-soft">
       {TABS.map((tab) => {
-        const isActive = tab.value === active;
+        const isActive = tab.value === shown;
         return (
           <Link
             key={tab.value}
             href={tab.href}
+            onClick={() => setTarget(tab.value)}
             className={
               isActive
                 ? `wob relative -mb-px flex items-center gap-1.5 whitespace-nowrap rounded-t-lg border border-b-0 border-border-soft px-3 py-2 text-sm font-semibold ${tab.bg} ${tab.color}`

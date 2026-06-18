@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 export type SortKey = "relevanz" | "neueste" | "offen";
 
@@ -8,7 +11,11 @@ const OPTIONS: { key: SortKey; label: string; href: string }[] = [
   { key: "offen", label: "Offen zuerst", href: "/?sort=offen" },
 ];
 
+// Optimistisch: die geklickte Sortierung wird sofort markiert, Inhalt lädt nach.
 export function SortControl({ active }: { active: SortKey }) {
+  const [target, setTarget] = useState<SortKey | null>(null);
+  const shown = target ?? active;
+
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-xs">
       <span className="text-muted">Sortieren:</span>
@@ -16,8 +23,9 @@ export function SortControl({ active }: { active: SortKey }) {
         <Link
           key={o.key}
           href={o.href}
+          onClick={() => setTarget(o.key)}
           className={`wob rounded-full px-2.5 py-1 transition ${
-            o.key === active
+            o.key === shown
               ? "bg-ink text-white"
               : "border border-border-soft text-muted hover:text-ink"
           }`}
