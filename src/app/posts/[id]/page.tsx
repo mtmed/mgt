@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/users";
 import { typeLabel } from "@/lib/post";
 import { Avatar } from "@/components/Avatar";
-import { AnswerForm } from "@/components/AnswerForm";
+import { AnswersSection } from "@/components/AnswersSection";
 import { EndorseButton } from "@/components/EndorseButton";
 import { SolvedButton } from "@/components/SolvedButton";
 import { PauseReactionButton } from "@/components/PauseReactionButton";
@@ -202,48 +202,19 @@ export default async function PostDetailPage({
           )}
         </section>
       ) : (
-        <>
-          <section className="mt-6">
-            <h2 className="mb-3 text-lg font-semibold">
-              Antworten ({post.answers.length})
-            </h2>
-            {post.answers.length === 0 ? (
-              <p className="rounded-[12px] border border-dashed border-border-soft bg-white p-4 text-sm text-muted">
-                Noch keine Antworten. Sei die erste namentliche Antwort.
-              </p>
-            ) : (
-              <ul className="space-y-3">
-                {post.answers.map((a) => (
-                  <li
-                    key={a.id}
-                    className="rounded-[12px] border border-border-soft bg-white p-4"
-                  >
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                      {a.text}
-                    </p>
-                    <p className="mt-3 flex items-center gap-1.5 text-xs text-muted">
-                      <Avatar id={a.author.id} name={a.author.name} size={20} />
-                      {a.author.name} · {df.format(a.createdAt)}
-                    </p>
-                    <div className="mt-3">
-                      <EndorseButton
-                        target={{ answerId: a.id }}
-                        redirectPostId={post.id}
-                        active={myAnswerEndorsed.has(a.id)}
-                        count={a._count.endorsements}
-                      />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section className="mt-6 rounded-[12px] border border-border-soft bg-white p-5">
-            <h2 className="mb-3 text-base font-semibold">Antwort hinzufügen</h2>
-            <AnswerForm postId={post.id} />
-          </section>
-        </>
+        <AnswersSection
+          postId={post.id}
+          currentUser={current ? { id: current.id, name: current.name } : null}
+          answers={post.answers.map((a) => ({
+            id: a.id,
+            text: a.text,
+            authorId: a.author.id,
+            authorName: a.author.name,
+            dateLabel: df.format(a.createdAt),
+            endorsementCount: a._count.endorsements,
+            mineEndorsed: myAnswerEndorsed.has(a.id),
+          }))}
+        />
       )}
     </div>
   );

@@ -33,6 +33,13 @@ export function UserMenu({ user }: { user: { id: string; name: string } }) {
               {user.name}
             </div>
             <Link
+              href="/profil"
+              onClick={() => setOpen(false)}
+              className="block px-3 py-2 text-sm hover:bg-eisblau/20"
+            >
+              Profil
+            </Link>
+            <Link
               href="/meine"
               onClick={() => setOpen(false)}
               className="block px-3 py-2 text-sm hover:bg-eisblau/20"

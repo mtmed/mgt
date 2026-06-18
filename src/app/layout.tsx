@@ -1,6 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import { Space_Grotesk } from "next/font/google";
 import Link from "next/link";
 import { cookies } from "next/headers";
+
+// Self-hosted (Next lädt die Schrift zur Build-Zeit, kein Client-Request an Google).
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { UserSwitcher } from "@/components/UserSwitcher";
 import { UserMenu } from "@/components/UserMenu";
@@ -35,19 +44,7 @@ export default async function RootLayout({
   const kodexAccepted = cookieStore.get("kodex_ack")?.value === "1";
 
   return (
-    <html lang="de" className="h-full antialiased">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
-        />
-      </head>
+    <html lang="de" className={`h-full antialiased ${spaceGrotesk.variable}`}>
       <body className="flex min-h-full flex-col">
         <ServiceWorkerRegister />
 

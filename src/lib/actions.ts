@@ -260,6 +260,21 @@ export async function togglePauseReaction(postId: string): Promise<void> {
   revalidatePath("/");
 }
 
+// Profil: angezeigten Namen ändern.
+export async function updateName(
+  _prev: FormState & { ok?: boolean },
+  formData: FormData,
+): Promise<FormState & { ok?: boolean }> {
+  const me = await getCurrentUser();
+  if (!me) return { error: "Nicht angemeldet." };
+  const name = String(formData.get("name") ?? "").trim();
+  if (name.length < 2) return { error: "Bitte gib einen Namen ein (mind. 2 Zeichen)." };
+  if (name.length > 80) return { error: "Der Name ist zu lang (max. 80 Zeichen)." };
+  await prisma.user.update({ where: { id: me.id }, data: { name } });
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 // Onboarding/Kodex einmalig bestätigt (Cookie). Bis dahin zeigt das Layout
 // den Erst-Screen.
 export async function acceptKodex(): Promise<void> {
