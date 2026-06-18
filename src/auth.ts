@@ -6,6 +6,41 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
 export const PENDING_NAME_COOKIE = "pending_name";
+export const LOGIN_EMAIL_COOKIE = "login_email";
+
+// 6-stelliger Anmelde-Code (statt nur Magic-Link) — funktioniert in der
+// installierten PWA, weil der Code IN der App eingegeben wird.
+function generateCode(): string {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+async function sendCodeEmail(params: {
+  identifier: string;
+  url: string;
+  token: string;
+}) {
+  const { identifier: email, url, token } = params;
+  const from = process.env.EMAIL_FROM ?? "bada bup <onboarding@resend.dev>";
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.AUTH_RESEND_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to: email,
+      subject: `bada bup — dein Anmelde-Code: ${token}`,
+      text:
+        `Dein Anmelde-Code für bada bup:\n\n   ${token}\n\n` +
+        `Gib ihn in der App/im Browser ein. Gültig für 10 Minuten.\n\n` +
+        `Oder am Desktop direkt anmelden: ${url}\n`,
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Resend-Versand fehlgeschlagen (${res.status}).`);
+  }
+}
 
 // Prisma-Adapter mit überschriebenem createUser: übernimmt den bei der
 // Registrierung eingegebenen Namen (Cookie), sonst provisorisch aus der E-Mail.
@@ -32,10 +67,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Resend({
       from: process.env.EMAIL_FROM ?? "bada bup <onboarding@resend.dev>",
+      maxAge: 60 * 10, // Code 10 Minuten gültig
+      generateVerificationToken: generateCode,
+      sendVerificationRequest: sendCodeEmail,
     }),
   ],
   pages: {
     signIn: "/anmelden",
-    verifyRequest: "/anmelden/pruefen",
+    verifyRequest: "/anmelden/code",
   },
 });

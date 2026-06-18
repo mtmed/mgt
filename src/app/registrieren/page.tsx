@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { signIn, PENDING_NAME_COOKIE } from "@/auth";
+import { signIn, PENDING_NAME_COOKIE, LOGIN_EMAIL_COOKIE } from "@/auth";
 import { getSessionUser } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
@@ -23,15 +23,22 @@ export default async function RegistrierenPage() {
           "use server";
           const name = String(formData.get("name") ?? "").trim();
           const email = String(formData.get("email") ?? "");
+          const cookieStore = await cookies();
           if (name) {
-            (await cookies()).set(PENDING_NAME_COOKIE, name, {
+            cookieStore.set(PENDING_NAME_COOKIE, name, {
               httpOnly: true,
               sameSite: "lax",
               path: "/",
               maxAge: 60 * 30,
             });
           }
-          await signIn("resend", { email, redirectTo: "/" });
+          cookieStore.set(LOGIN_EMAIL_COOKIE, email, {
+            httpOnly: true,
+            sameSite: "lax",
+            path: "/",
+            maxAge: 60 * 15,
+          });
+          await signIn("resend", { email });
         }}
         className="mt-4 space-y-3"
       >

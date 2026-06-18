@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { signIn, signOut } from "@/auth";
+import { cookies } from "next/headers";
+import { signIn, signOut, LOGIN_EMAIL_COOKIE } from "@/auth";
 import { getSessionUser } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
@@ -49,16 +50,20 @@ export default async function AnmeldenPage() {
       <h1 className="text-xl font-semibold">Anmelden</h1>
       <p className="mt-2 text-sm text-muted">
         Für bestehende Mitglieder: E-Mail eingeben, du bekommst einen
-        Anmelde-Link (kein Passwort nötig).
+        6-stelligen Code (kein Passwort nötig).
       </p>
 
       <form
         action={async (formData: FormData) => {
           "use server";
-          await signIn("resend", {
-            email: String(formData.get("email") ?? ""),
-            redirectTo: "/",
+          const email = String(formData.get("email") ?? "");
+          (await cookies()).set(LOGIN_EMAIL_COOKIE, email, {
+            httpOnly: true,
+            sameSite: "lax",
+            path: "/",
+            maxAge: 60 * 15,
           });
+          await signIn("resend", { email });
         }}
         className="mt-4 space-y-3"
       >
@@ -73,7 +78,7 @@ export default async function AnmeldenPage() {
           type="submit"
           className="w-full rounded-md bg-kobalt px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
         >
-          Anmelde-Link senden
+          Code senden
         </button>
       </form>
 
