@@ -48,8 +48,8 @@ export default async function AnmeldenPage() {
     <div className="anim-in mx-auto max-w-sm">
       <h1 className="text-xl font-semibold">Anmelden</h1>
       <p className="mt-2 text-sm text-muted">
-        Gib deine berufliche E-Mail-Adresse ein — du bekommst einen Anmelde-Link.
-        Neue Zugänge werden manuell freigeschaltet.
+        Für bestehende Mitglieder: E-Mail eingeben, du bekommst einen
+        Anmelde-Link (kein Passwort nötig).
       </p>
 
       <form
@@ -77,8 +77,11 @@ export default async function AnmeldenPage() {
         </button>
       </form>
 
-      <p className="mt-4 text-xs text-muted">
-        Antworten sind immer namentlich. Fragen dürfen pseudonym sein.
+      <p className="mt-4 text-sm">
+        Noch keinen Zugang?{" "}
+        <Link href="/registrieren" className="font-medium text-kobalt hover:underline">
+          Zugang anfragen →
+        </Link>
       </p>
     </div>
   );
