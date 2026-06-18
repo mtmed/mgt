@@ -99,7 +99,7 @@ export default async function MeinePage({
           </li>
         ) : (
           feed.map((post) => (
-            <li key={post.id}>
+            <li key={post.id} className="feed-item">
               <PostCard post={post} />
             </li>
           ))

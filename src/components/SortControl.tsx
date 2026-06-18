@@ -16,7 +16,7 @@ export function SortControl({ active }: { active: SortKey }) {
         <Link
           key={o.key}
           href={o.href}
-          className={`rounded-full px-2.5 py-1 transition ${
+          className={`wob rounded-full px-2.5 py-1 transition ${
             o.key === active
               ? "bg-ink text-white"
               : "border border-border-soft text-muted hover:text-ink"

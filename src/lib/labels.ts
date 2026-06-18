@@ -11,10 +11,6 @@ export type LabelDef = {
 export const LABEL_DEFS: LabelDef[] = [
   { key: "footer", group: "Allgemein", desc: "Fußzeile", def: "Antworten sind immer namentlich." },
   { key: "feed_empty", group: "Feed", desc: "Leerer Feed", def: "Noch nichts hier. Mach den Anfang." },
-  { key: "mood_tag", group: "Reiter-Stimmung", desc: "Tag", def: "Dein Berufstag — alles in einem Strom." },
-  { key: "mood_fach", group: "Reiter-Stimmung", desc: "Fach", def: "Gelöste Fälle und geteiltes Wissen." },
-  { key: "mood_pause", group: "Reiter-Stimmung", desc: "Pause", def: "Kurz durchatmen. Hier zählt nichts." },
-  { key: "mood_korpus", group: "Reiter-Stimmung", desc: "Korpus", def: "Der gemeinsame Korpus — gelöstes Wissen, nach Thema durchsuchbar." },
   { key: "intent_seek_label", group: "Beitrag erstellen", desc: "Input holen — Titel", def: "Input holen" },
   { key: "intent_seek_hint", group: "Beitrag erstellen", desc: "Input holen — Unterzeile", def: "Frage oder Fall" },
   { key: "intent_give_label", group: "Beitrag erstellen", desc: "Input geben — Titel", def: "Input geben" },
