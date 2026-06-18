@@ -245,7 +245,7 @@ export default async function AdminPage({
 
       {/* Vorgeschlagene Tags */}
       <h2 className="mt-8 mb-2 text-lg font-semibold">
-        Vorgeschlagene Tags ({pendingTags.length})
+        Vorgeschlagene Themen ({pendingTags.length})
       </h2>
       {pendingTags.length === 0 ? (
         <p className="text-sm text-muted">Keine offenen Vorschläge.</p>

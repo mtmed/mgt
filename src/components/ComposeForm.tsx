@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createPost, type FormState } from "@/lib/actions";
+import { suggestThemes } from "@/lib/theme-keywords";
 
 // Bild im Browser verkleinern (max. 1600 px) und als JPEG neu kodieren.
 // Das umgeht Vercels 4,5-MB-Upload-Grenze und entfernt EXIF schon am Gerät.
@@ -100,8 +101,19 @@ export function ComposeForm({
     "MATCHES",
   );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [text, setText] = useState("");
   const active = INTENTS.find((i) => i.value === intent)!;
   const isFach = intent !== "PAUSE";
+
+  // Themen-Vorschläge aus dem Text (Stichwort-Treffer, nicht bereits gewählt).
+  const suggestions = isFach
+    ? suggestThemes(
+        text,
+        tags.map((t) => t.slug),
+      ).filter((s) => !selectedTags.includes(s))
+    : [];
+  const labelFor = (slug: string) =>
+    tags.find((t) => t.slug === slug)?.label ?? slug;
 
   const RELATIONS: { value: typeof relation; label: string }[] = [
     { value: "MATCHES", label: "deckt sich mit der Leitlinie" },
@@ -202,6 +214,8 @@ export function ComposeForm({
           name="text"
           rows={6}
           required
+          value={text}
+          onChange={(e) => setText(e.target.value)}
           placeholder={active.placeholder}
           className="w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
         />
@@ -210,11 +224,26 @@ export function ComposeForm({
       {isFach && tags.length > 0 && (
         <div className="space-y-2">
           <span className="text-sm font-medium">
-            Tags <span className="text-muted">(optional, Mehrfachauswahl)</span>
+            Themen <span className="text-muted">(optional, Mehrfachauswahl)</span>
           </span>
           {selectedTags.map((slug) => (
             <input key={slug} type="hidden" name="tags" value={slug} />
           ))}
+          {suggestions.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-muted">Vorschläge:</span>
+              {suggestions.map((slug) => (
+                <button
+                  key={slug}
+                  type="button"
+                  onClick={() => toggleTag(slug)}
+                  className="rounded-full border border-dashed border-kobalt/50 bg-eisblau/20 px-2.5 py-1 text-xs text-kobalt transition hover:bg-eisblau/40"
+                >
+                  + {labelFor(slug)}
+                </button>
+              ))}
+            </div>
+          )}
           {tagGroups.map(
             (group) =>
               group.items.length > 0 && (
@@ -246,7 +275,7 @@ export function ComposeForm({
           <input
             type="text"
             name="newTags"
-            placeholder="Neuen Tag vorschlagen (kommagetrennt) — wird geprüft"
+            placeholder="Neues Thema vorschlagen (kommagetrennt) — wird geprüft"
             className="mt-1 w-full rounded-md border border-border-soft bg-white px-3 py-2 text-xs focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
           />
         </div>

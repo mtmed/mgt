@@ -4,6 +4,7 @@ import { FeedTabs } from "@/components/FeedTabs";
 import { PostCard, type FeedPost } from "@/components/PostCard";
 import { KorpusStats } from "@/components/KorpusStats";
 import { Landing } from "@/components/Landing";
+import { SortControl, type SortKey } from "@/components/SortControl";
 import { isValidTab, type FeedTab } from "@/lib/post";
 import { getLabels } from "@/lib/labels";
 import { getCurrentUser } from "@/lib/users";
@@ -20,15 +21,17 @@ const TAB_BG: Record<FeedTab, string> = {
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; sort?: string }>;
 }) {
   // Nicht angemeldet → Landing (nur in Production ohne Session; im Dev greift
   // der Fallback-Nutzer, dann zeigt sich der Feed).
   const me = await getCurrentUser();
   if (!me) return <Landing />;
 
-  const { tab: rawTab } = await searchParams;
+  const { tab: rawTab, sort: rawSort } = await searchParams;
   const tab: FeedTab = isValidTab(rawTab) ? rawTab : "tag";
+  const sortKey: SortKey =
+    rawSort === "neueste" || rawSort === "offen" ? rawSort : "relevanz";
 
   const where: Prisma.PostWhereInput =
     tab === "fach"
@@ -52,6 +55,35 @@ export default async function HomePage({
     }),
     getLabels(),
   ]);
+
+  // Sortierung nur im Alltag-Reiter. Relevanz = Aktualität + Resonanz +
+  // Bonus für offene Fälle ohne Antwort (KEINE Views/Reichweite, §9).
+  if (tab === "tag") {
+    const now = Date.now();
+    const score = (p: (typeof posts)[number]) => {
+      const ageH = (now - p.createdAt.getTime()) / 3_600_000;
+      const recency = Math.max(0, 1 - ageH / 336); // ~14 Tage linearer Verfall
+      const engagement =
+        p._count.answers + p._count.endorsements + p.pauseReactions.length * 0.5;
+      const needsHelp =
+        p.intent === "SEEK" && p.status === "OPEN" && p._count.answers === 0
+          ? 3
+          : 0;
+      return recency * 5 + engagement + needsHelp;
+    };
+    if (sortKey === "relevanz") {
+      posts.sort((a, b) => score(b) - score(a));
+    } else if (sortKey === "offen") {
+      const openRank = (p: (typeof posts)[number]) =>
+        p.intent === "SEEK" && p.status === "OPEN" ? 1 : 0;
+      posts.sort(
+        (a, b) =>
+          openRank(b) - openRank(a) ||
+          b.createdAt.getTime() - a.createdAt.getTime(),
+      );
+    }
+    // "neueste" → bleibt createdAt desc (Query-Reihenfolge)
+  }
 
   const feed: FeedPost[] = posts.map((p) => ({
     id: p.id,
@@ -79,6 +111,12 @@ export default async function HomePage({
       <div className="mt-4">
         <KorpusStats />
       </div>
+
+      {tab === "tag" && (
+        <div className="mt-4">
+          <SortControl active={sortKey} />
+        </div>
+      )}
 
       <ul className="mt-5 space-y-3">
         {feed.length === 0 ? (

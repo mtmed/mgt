@@ -140,12 +140,16 @@ export default async function PostDetailPage({
           </div>
         )}
 
-        <p className="mt-4 flex items-center gap-1.5 text-xs text-muted">
-          {!post.isPseudonym && (
-            <Avatar id={post.author.id} name={post.author.name} size={20} />
-          )}
-          {post.isPseudonym ? "pseudonym" : post.author.name} · {df.format(post.createdAt)}
-        </p>
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1.5 text-xs text-muted">
+            {!post.isPseudonym && (
+              <Avatar id={post.author.id} name={post.author.name} size={20} />
+            )}
+            {post.isPseudonym ? "pseudonym" : post.author.name} ·{" "}
+            {df.format(post.createdAt)}
+          </span>
+          <BookmarkButton postId={post.id} active={Boolean(bookmark)} />
+        </div>
 
         {post.tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -181,10 +185,6 @@ export default async function PostDetailPage({
             <SolvedButton postId={post.id} />
           </div>
         )}
-
-        <div className="mt-4">
-          <BookmarkButton postId={post.id} active={Boolean(bookmark)} />
-        </div>
       </article>
 
       {isPause ? (

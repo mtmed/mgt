@@ -30,7 +30,7 @@ export function BookmarkButton({
           : "border border-chip-quelle-bd text-kobalt hover:bg-eisblau/30"
       }`}
     >
-      {on ? "✓ gespeichert" : "speichern"}
+      {on ? "✓ gemerkt" : "merken"}
     </button>
   );
 }
