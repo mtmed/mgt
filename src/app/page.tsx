@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { FeedTabs } from "@/components/FeedTabs";
 import { PostCard, type FeedPost } from "@/components/PostCard";
+import { KorpusStats } from "@/components/KorpusStats";
 import { isValidTab, type FeedTab } from "@/lib/post";
 import { getLabels } from "@/lib/labels";
 
@@ -65,6 +66,10 @@ export default async function HomePage({
   return (
     <div className={`anim-in surface-transition -mx-4 -my-6 min-h-full px-4 py-6 ${TAB_BG[tab]}`}>
       <FeedTabs active={tab} />
+
+      <div className="mt-4">
+        <KorpusStats />
+      </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
         <ComposeLink intent="SEEK" label={labels.intent_seek_label} accent="kobalt" />

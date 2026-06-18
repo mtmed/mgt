@@ -249,6 +249,19 @@ export async function togglePauseReaction(postId: string): Promise<void> {
   revalidatePath("/");
 }
 
+// Onboarding/Kodex einmalig bestätigt (Cookie). Bis dahin zeigt das Layout
+// den Erst-Screen.
+export async function acceptKodex(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set("kodex_ack", "1", {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+  revalidatePath("/", "layout");
+}
+
 // Privates Lesezeichen — Toggle (kein öffentliches Signal).
 export async function toggleBookmark(postId: string): Promise<void> {
   const user = await getCurrentUser();

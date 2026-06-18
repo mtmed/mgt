@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { UserSwitcher } from "@/components/UserSwitcher";
+import { Onboarding } from "@/components/Onboarding";
 import { getCurrentUser, SEED_USERS } from "@/lib/users";
 import { getLabels } from "@/lib/labels";
 import "./globals.css";
@@ -31,12 +33,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [current, labels] = await Promise.all([getCurrentUser(), getLabels()]);
+  const [current, labels, cookieStore] = await Promise.all([
+    getCurrentUser(),
+    getLabels(),
+    cookies(),
+  ]);
+  const kodexAccepted = cookieStore.get("kodex_ack")?.value === "1";
 
   return (
     <html lang="de" className="h-full antialiased">
       <body className="flex min-h-full flex-col">
         <ServiceWorkerRegister />
+        {!kodexAccepted && <Onboarding />}
         <header className="border-b border-border-soft bg-white">
           <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3 px-4 py-3">
             <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
