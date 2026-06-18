@@ -11,7 +11,7 @@ export async function KorpusStats() {
 
   return (
     <div className="rounded-[12px] border border-border-soft bg-white/60 px-4 py-2.5 text-sm">
-      <span className="font-medium">Gemeinsamer Korpus</span>
+      <span className="font-medium">gemeinsam</span>
       <span className="text-muted">
         {" · "}
         {solvedCases} {solvedCases === 1 ? "gelöster Fall" : "gelöste Fälle"}

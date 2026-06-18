@@ -2,20 +2,22 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Avatar } from "@/components/Avatar";
 
-// Kleines Menü rechts in der Reiterleiste: eigene & gespeicherte Beiträge.
-export function MeineMenu() {
+// User-Kreis im Header → Menü mit eigenen & gespeicherten Beiträgen.
+export function UserMenu({ user }: { user: { id: string; name: string } }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative ml-auto">
+    <div className="relative">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
+        aria-label="Mein Menü"
         aria-expanded={open}
-        className="whitespace-nowrap px-3 py-2 text-sm font-semibold text-muted hover:text-ink"
+        className="flex rounded-full ring-2 ring-transparent transition hover:ring-border-soft"
       >
-        Meine ▾
+        <Avatar id={user.id} name={user.name} size={30} />
       </button>
       {open && (
         <>
@@ -27,6 +29,9 @@ export function MeineMenu() {
             className="fixed inset-0 z-10 cursor-default"
           />
           <div className="absolute right-0 z-20 mt-1 w-48 rounded-md border border-border-soft bg-white py-1 shadow-md">
+            <div className="truncate border-b border-border-soft px-3 py-2 text-xs text-muted">
+              {user.name}
+            </div>
             <Link
               href="/meine"
               onClick={() => setOpen(false)}

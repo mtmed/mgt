@@ -1,41 +1,40 @@
 import Link from "next/link";
 import type { FeedTab } from "@/lib/post";
 import { getLabels } from "@/lib/labels";
-import { MeineMenu } from "@/components/MeineMenu";
 
-// Ein Feed, vier Linsen (§3 + Korpus). Farb-Punkte als Vorschau der Farbsprache.
+// Ein Feed, vier Linsen — als „Browser-Tabs" (aktiver Tab verschmilzt mit der
+// Fläche darunter). Werte (tag/fach/pause/korpus) bleiben fürs Routing.
 const TABS: {
   value: FeedTab;
   label: string;
   href: string;
-  mood: string;
+  bg: string;
+  color: string;
   dot?: "kobalt" | "terra";
 }[] = [
-  {
-    value: "tag",
-    label: "Tag",
-    href: "/",
-    mood: "Dein Berufstag — alles in einem Strom.",
-  },
+  { value: "tag", label: "Alltag", href: "/", bg: "bg-kreme", color: "text-ink" },
   {
     value: "fach",
-    label: "Fach",
+    label: "Beruf",
     href: "/?tab=fach",
-    mood: "Gelöste Fälle und geteiltes Wissen.",
+    bg: "bg-bg-fach",
+    color: "text-kobalt",
     dot: "kobalt",
   },
   {
     value: "pause",
     label: "Pause",
     href: "/?tab=pause",
-    mood: "Kurz durchatmen. Hier zählt nichts.",
+    bg: "bg-sand-warm",
+    color: "text-terra-deep",
     dot: "terra",
   },
   {
     value: "korpus",
-    label: "Korpus",
+    label: "Unser Wissen",
     href: "/korpus",
-    mood: "Der gemeinsame Korpus — gelöstes Wissen, nach Thema durchsuchbar.",
+    bg: "bg-kreme",
+    color: "text-kobalt",
     dot: "kobalt",
   },
 ];
@@ -43,26 +42,22 @@ const TABS: {
 export async function FeedTabs({ active }: { active: FeedTab }) {
   const labels = await getLabels();
   const current = TABS.find((t) => t.value === active) ?? TABS[0];
-  const mood = labels[`mood_${current.value}`] ?? current.mood;
+  const mood = labels[`mood_${current.value}`] ?? "";
+
   return (
     <div>
-      <div className="flex items-center border-b border-border-soft">
-      <nav className="flex gap-1 overflow-x-auto">
+      <nav className="flex gap-1 overflow-x-auto border-b border-border-soft">
         {TABS.map((tab) => {
           const isActive = tab.value === active;
-          const color =
-            tab.value === "pause"
-              ? "text-terra-deep border-terra"
-              : tab.value === "tag"
-                ? "text-ink border-ink"
-                : "text-kobalt border-kobalt";
           return (
             <Link
               key={tab.value}
               href={tab.href}
-              className={`flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold transition ${
-                isActive ? color : "border-transparent text-muted hover:text-ink"
-              }`}
+              className={
+                isActive
+                  ? `relative -mb-px flex items-center gap-1.5 whitespace-nowrap rounded-t-lg border border-b-0 border-border-soft px-3 py-2 text-sm font-semibold ${tab.bg} ${tab.color}`
+                  : "flex items-center gap-1.5 whitespace-nowrap rounded-t-lg border border-transparent px-3 py-2 text-sm font-medium text-muted hover:bg-white/50 hover:text-ink"
+              }
             >
               {tab.dot && (
                 <span
@@ -76,9 +71,7 @@ export async function FeedTabs({ active }: { active: FeedTab }) {
           );
         })}
       </nav>
-        <MeineMenu />
-      </div>
-      <p className="mt-3 text-sm text-muted">{mood}</p>
+      {mood && <p className="mt-3 text-sm text-muted">{mood}</p>}
     </div>
   );
 }
