@@ -13,6 +13,7 @@ const spaceGrotesk = Space_Grotesk({
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { UserSwitcher } from "@/components/UserSwitcher";
 import { UserMenu } from "@/components/UserMenu";
+import { InfoMenu } from "@/components/InfoMenu";
 import { Onboarding } from "@/components/Onboarding";
 import { ComposeBar } from "@/components/ComposeBar";
 import { getCurrentUser, getSessionUser, SEED_USERS } from "@/lib/users";
@@ -88,6 +89,7 @@ export default async function RootLayout({
                     <span className="rounded-md border border-border-soft px-2 py-1 text-xs text-muted">
                       {PROFESSION}
                     </span>
+                    <InfoMenu />
                     <UserMenu
                       user={{ id: sessionUser.id, name: sessionUser.name }}
                       admin={sessionUser.admin}
@@ -103,6 +105,7 @@ export default async function RootLayout({
                       users={SEED_USERS.map((u) => ({ id: u.id, name: u.name }))}
                       currentId={current.id}
                     />
+                    <InfoMenu />
                     <UserMenu
                       user={{ id: current.id, name: current.name }}
                       admin={current.admin}

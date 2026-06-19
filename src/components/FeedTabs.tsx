@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { FeedTab } from "@/lib/post";
-import { InfoMenu } from "@/components/InfoMenu";
 
 // Ein Feed, vier Linsen — als „Browser-Tabs". Optimistisch: der geklickte Reiter
 // wird SOFORT aktiv markiert, der Inhalt lädt im Hintergrund.
@@ -47,9 +46,8 @@ export function FeedTabs({ active }: { active: FeedTab }) {
   const shown = target ?? active;
 
   return (
-    <nav className="flex items-stretch border-b border-border-soft">
-      <div className="flex gap-1 overflow-x-auto">
-        {TABS.map((tab) => {
+    <nav className="flex gap-1 overflow-x-auto border-b border-border-soft">
+      {TABS.map((tab) => {
         const isActive = tab.value === shown;
         return (
           <Link
@@ -72,11 +70,7 @@ export function FeedTabs({ active }: { active: FeedTab }) {
             {tab.label}
           </Link>
         );
-        })}
-      </div>
-      <div className="ml-auto flex items-center">
-        <InfoMenu />
-      </div>
+      })}
     </nav>
   );
 }

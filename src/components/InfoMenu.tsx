@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 
-// Dezenter Dropdown-Pfeil neben „Unser Wissen": Info-/Transparenz-Seiten
-// (Datenschutz, Impressum, Entwicklung). Bewusst neutral (Kobalt/Struktur).
+// Info-/Transparenz-Menü im Header (links neben dem User-Kreis): Datenschutz,
+// Impressum, Entwicklung. Bewusst neutral (Kobalt/Struktur), getrennt von den
+// inhaltlichen Reitern.
 const ITEMS = [
   { href: "/datenschutz", label: "Datenschutz" },
   { href: "/impressum", label: "Impressum" },
@@ -19,23 +20,23 @@ export function InfoMenu() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        aria-label="Mehr"
+        aria-label="Info & Rechtliches"
         aria-expanded={open}
-        className="wob flex items-center rounded-t-lg px-2 py-2 text-muted hover:text-ink"
+        className="flex h-[30px] w-[30px] items-center justify-center rounded-full text-muted ring-2 ring-transparent transition hover:text-ink hover:ring-border-soft"
       >
         <svg
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className={`transition-transform ${open ? "rotate-180" : ""}`}
           aria-hidden
         >
-          <path d="m6 9 6 6 6-6" />
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4M12 8h.01" />
         </svg>
       </button>
 
