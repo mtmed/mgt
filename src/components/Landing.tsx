@@ -33,6 +33,18 @@ export function Landing() {
           Zugang anfragen
         </Link>
       </div>
+
+      <div className="mt-10 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted">
+        <Link href="/datenschutz" className="hover:text-ink">
+          Datenschutz
+        </Link>
+        <Link href="/impressum" className="hover:text-ink">
+          Impressum
+        </Link>
+        <Link href="/entwicklung" className="hover:text-ink">
+          Entwicklung
+        </Link>
+      </div>
     </div>
   );
 }

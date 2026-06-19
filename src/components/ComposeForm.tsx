@@ -1,9 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createPost, type FormState } from "@/lib/actions";
 import { suggestThemes } from "@/lib/theme-keywords";
+import { detectIdentifiers } from "@/lib/anon-detect";
+import { AnonNudge } from "@/components/AnonNudge";
 
 // Bild im Browser verkleinern (max. 1600 px) und als JPEG neu kodieren.
 // Das umgeht Vercels 4,5-MB-Upload-Grenze und entfernt EXIF schon am Gerät.
@@ -64,12 +66,15 @@ const INTENTS: {
 function SubmitButton({
   accent,
   busy,
+  flagged,
 }: {
   accent: "kobalt" | "terra";
   busy: boolean;
+  flagged: boolean;
 }) {
   const { pending } = useFormStatus();
   const disabled = pending || busy;
+  const idleLabel = flagged ? "Trotzdem teilen" : "Teilen";
   return (
     <button
       type="submit"
@@ -78,7 +83,11 @@ function SubmitButton({
         accent === "terra" ? "bg-terra" : "bg-kobalt"
       }`}
     >
-      {busy ? "Bilder werden verarbeitet …" : pending ? "Wird geteilt …" : "Teilen"}
+      {busy
+        ? "Bilder werden verarbeitet …"
+        : pending
+          ? "Wird geteilt …"
+          : idleLabel}
     </button>
   );
 }
@@ -102,8 +111,13 @@ export function ComposeForm({
   );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [text, setText] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const active = INTENTS.find((i) => i.value === intent)!;
   const isFach = intent !== "PAUSE";
+
+  // Anonymisierungs-Nudge (§6a): nur im Fach-Register (Frage/Info), nur sobald
+  // Text da ist. Läuft rein clientseitig — Treffer werden nie versendet/geloggt.
+  const anonHits = isFach && text.trim() ? detectIdentifiers(text) : [];
 
   // Themen-Vorschläge aus dem Text (Stichwort-Treffer, nicht bereits gewählt).
   const suggestions = isFach
@@ -211,6 +225,7 @@ export function ComposeForm({
 
       <div>
         <textarea
+          ref={textareaRef}
           name="text"
           rows={6}
           required
@@ -220,6 +235,33 @@ export function ComposeForm({
           className="w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
         />
       </div>
+
+      {isFach && text.trim() && (
+        <div className="space-y-2">
+          <AnonNudge
+            hits={anonHits}
+            onRevise={() => textareaRef.current?.focus()}
+          />
+          <p className="flex items-center gap-1.5 text-[11px] text-muted">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Diese Prüfung läuft nur auf deinem Gerät — nichts wird gesendet oder
+            gespeichert.
+          </p>
+        </div>
+      )}
 
       {isFach && tags.length > 0 && (
         <div className="space-y-2">
@@ -384,7 +426,11 @@ export function ComposeForm({
         </p>
       )}
 
-      <SubmitButton accent={active.accent} busy={imagesBusy} />
+      <SubmitButton
+        accent={active.accent}
+        busy={imagesBusy}
+        flagged={anonHits.length > 0}
+      />
     </form>
   );
 }

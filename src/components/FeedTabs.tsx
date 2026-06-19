@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { FeedTab } from "@/lib/post";
+import { InfoMenu } from "@/components/InfoMenu";
 
 // Ein Feed, vier Linsen — als „Browser-Tabs". Optimistisch: der geklickte Reiter
 // wird SOFORT aktiv markiert, der Inhalt lädt im Hintergrund.
@@ -71,6 +72,9 @@ export function FeedTabs({ active }: { active: FeedTab }) {
           </Link>
         );
       })}
+      <div className="ml-auto">
+        <InfoMenu />
+      </div>
     </nav>
   );
 }

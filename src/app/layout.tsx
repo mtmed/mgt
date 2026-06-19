@@ -117,8 +117,18 @@ export default async function RootLayout({
             </main>
 
             <footer className="border-t border-border-soft">
-              <div className="mx-auto w-full max-w-2xl px-4 py-3 text-xs text-muted">
-                bada bup · {labels.footer}
+              <div className="mx-auto flex w-full max-w-2xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-xs text-muted">
+                <span>bada bup · {labels.footer}</span>
+                <span className="text-border-soft">·</span>
+                <Link href="/datenschutz" className="hover:text-ink">
+                  Datenschutz
+                </Link>
+                <Link href="/impressum" className="hover:text-ink">
+                  Impressum
+                </Link>
+                <Link href="/entwicklung" className="hover:text-ink">
+                  Entwicklung
+                </Link>
               </div>
             </footer>
 
