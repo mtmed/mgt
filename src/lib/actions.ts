@@ -308,9 +308,13 @@ export async function toggleBookmark(postId: string): Promise<void> {
 // die fachlichen Beiträge bleiben als Teil des Korpus erhalten — aber als
 // „Nutzer gelöscht". Persönliche Signale (Lesezeichen, Pause-Reaktionen,
 // Nachrichten, Login) werden entfernt.
-export async function deleteAccount(): Promise<void> {
+export async function deleteAccount(formData: FormData): Promise<void> {
   const me = await getCurrentUser();
   if (!me) return;
+
+  // Verifikation: der eingegebene Name muss exakt dem eigenen entsprechen.
+  const confirmName = String(formData.get("confirmName") ?? "").trim();
+  if (confirmName !== me.name) return;
 
   await prisma.$transaction([
     prisma.bookmark.deleteMany({ where: { userId: me.id } }),

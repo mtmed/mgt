@@ -35,7 +35,7 @@ export default async function ProfilPage() {
         </p>
       </div>
 
-      <DeleteAccountSection />
+      <DeleteAccountSection name={me.name} />
     </div>
   );
 }

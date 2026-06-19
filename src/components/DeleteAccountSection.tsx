@@ -4,21 +4,23 @@ import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { deleteAccount } from "@/lib/actions";
 
-function ConfirmButton() {
+function ConfirmButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
-      disabled={pending}
-      className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-60"
+      disabled={disabled || pending}
+      className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
     >
       {pending ? "Wird gelöscht …" : "Endgültig löschen"}
     </button>
   );
 }
 
-export function DeleteAccountSection() {
+export function DeleteAccountSection({ name }: { name: string }) {
   const [confirming, setConfirming] = useState(false);
+  const [typed, setTyped] = useState("");
+  const matches = typed.trim() === name;
 
   return (
     <div className="mt-10 border-t border-border-soft pt-5">
@@ -39,23 +41,37 @@ export function DeleteAccountSection() {
           Konto löschen
         </button>
       ) : (
-        <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3">
+        <form
+          action={deleteAccount}
+          className="mt-3 rounded-md border border-red-200 bg-red-50 p-3"
+        >
           <p className="text-xs text-red-700">
-            Wirklich löschen? Dieser Schritt ist endgültig.
+            Dieser Schritt ist endgültig. Gib zur Bestätigung deinen Namen ein:{" "}
+            <span className="font-semibold">{name}</span>
           </p>
+          <input
+            type="text"
+            name="confirmName"
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            autoComplete="off"
+            placeholder="Dein Name"
+            className="mt-2 w-full rounded-md border border-red-200 bg-white px-3 py-2 text-sm focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400"
+          />
           <div className="mt-2 flex items-center gap-3">
-            <form action={deleteAccount}>
-              <ConfirmButton />
-            </form>
+            <ConfirmButton disabled={!matches} />
             <button
               type="button"
-              onClick={() => setConfirming(false)}
+              onClick={() => {
+                setConfirming(false);
+                setTyped("");
+              }}
               className="text-xs text-muted underline-offset-2 hover:underline"
             >
               Abbrechen
             </button>
           </div>
-        </div>
+        </form>
       )}
     </div>
   );
