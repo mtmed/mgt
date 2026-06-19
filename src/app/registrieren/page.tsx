@@ -45,14 +45,22 @@ export default async function RegistrierenPage() {
         <input
           type="text"
           name="name"
+          id="name"
           required
+          autoComplete="name"
           placeholder="Dr. Vorname Nachname"
           className="w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
         />
         <input
           type="email"
           name="email"
+          id="email"
           required
+          autoComplete="email"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           placeholder="name@beispiel.at"
           className="w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
         />
