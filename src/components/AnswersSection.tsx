@@ -93,7 +93,17 @@ export function AnswersSection({
                 </p>
                 <p className="mt-3 flex items-center gap-1.5 text-xs text-muted">
                   <Avatar id={a.authorId} name={a.authorName} size={20} />
-                  {a.authorName} · {a.pending ? "wird gesendet …" : a.dateLabel}
+                  {a.pending ? (
+                    a.authorName
+                  ) : (
+                    <Link
+                      href={`/mitglied/${a.authorId}`}
+                      className="font-medium text-ink hover:underline"
+                    >
+                      {a.authorName}
+                    </Link>
+                  )}{" · "}
+                  {a.pending ? "wird gesendet …" : a.dateLabel}
                 </p>
                 {!a.pending && (
                   <div className="mt-3">

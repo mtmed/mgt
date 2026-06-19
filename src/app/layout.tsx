@@ -18,6 +18,7 @@ import { Onboarding } from "@/components/Onboarding";
 import { ComposeBar } from "@/components/ComposeBar";
 import { getCurrentUser, getSessionUser, SEED_USERS } from "@/lib/users";
 import { getLabels } from "@/lib/labels";
+import { prisma } from "@/lib/prisma";
 import { signOut } from "@/auth";
 import "./globals.css";
 
@@ -50,6 +51,17 @@ export default async function RootLayout({
     cookies(),
   ]);
   const loggedOut = !current;
+  const unread = current
+    ? await prisma.message.count({
+        where: {
+          senderId: { not: current.id },
+          readAt: null,
+          conversation: {
+            OR: [{ userAId: current.id }, { userBId: current.id }],
+          },
+        },
+      })
+    : 0;
   const kodexAccepted = cookieStore.get("kodex_ack")?.value === "1";
 
   return (
@@ -93,6 +105,7 @@ export default async function RootLayout({
                     <UserMenu
                       user={{ id: sessionUser.id, name: sessionUser.name }}
                       admin={sessionUser.admin}
+                      unread={unread}
                       onSignOut={signOutAction}
                     />
                   </div>
@@ -109,6 +122,7 @@ export default async function RootLayout({
                     <UserMenu
                       user={{ id: current.id, name: current.name }}
                       admin={current.admin}
+                      unread={unread}
                     />
                   </div>
                 ) : null}

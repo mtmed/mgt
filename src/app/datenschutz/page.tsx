@@ -64,6 +64,12 @@ export default function DatenschutzPage() {
               optionale Bild-Anhänge.
             </li>
             <li>
+              <b className="font-semibold text-ink">Private Nachrichten:</b>{" "}
+              Direktnachrichten zwischen Mitgliedern (Inhalt, Beteiligte,
+              Zeitpunkt). Nur für die Beteiligten sichtbar; beim Löschen des
+              Kontos werden sie mitentfernt.
+            </li>
+            <li>
               <b className="font-semibold text-ink">Anmeldung:</b> einmalige
               Codes (Magic-Code) zur Authentifizierung.
             </li>

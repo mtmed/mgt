@@ -162,7 +162,16 @@ export default async function PostDetailPage({
             {!post.isPseudonym && (
               <Avatar id={post.author.id} name={post.author.name} size={20} />
             )}
-            {post.isPseudonym ? "pseudonym" : post.author.name} ·{" "}
+            {post.isPseudonym ? (
+              "pseudonym"
+            ) : (
+              <Link
+                href={`/mitglied/${post.author.id}`}
+                className="font-medium text-ink hover:underline"
+              >
+                {post.author.name}
+              </Link>
+            )}{" · "}
             {df.format(post.createdAt)}
           </span>
           <BookmarkButton postId={post.id} active={Boolean(bookmark)} />

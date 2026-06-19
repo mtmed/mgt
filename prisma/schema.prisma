@@ -48,6 +48,11 @@ model User {
   accounts       Account[]
   sessions       Session[]
   adminMessages  AdminMessage[]
+  conversationsA Conversation[]  @relation("ConvA")
+  conversationsB Conversation[]  @relation("ConvB")
+  sentMessages   Message[]       @relation("MsgSender")
+  blocksMade     Block[]         @relation("Blocker")
+  blocksReceived Block[]         @relation("Blocked")
 }
 
 // Nachricht an den Admin (aus dem ⓘ-Menü). Beim Konto-Löschen mitgelöscht.
@@ -58,6 +63,43 @@ model AdminMessage {
   senderId  String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+// 1:1-Konversation zwischen zwei Mitgliedern. Paar kanonisch (userAId < userBId)
+// gespeichert → genau eine Konversation pro Paar.
+model Conversation {
+  id        String    @id @default(cuid())
+  userAId   String
+  userBId   String
+  userA     User      @relation("ConvA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB     User      @relation("ConvB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([userAId, userBId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  sender         User         @relation("MsgSender", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId       String
+  body           String
+  readAt         DateTime? // null = vom Empfänger noch ungelesen
+  createdAt      DateTime     @default(now())
+}
+
+// Blockierung: blocker möchte von blocked keine Nachrichten mehr.
+model Block {
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockerId String
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  blockedId String
+  createdAt DateTime @default(now())
+
+  @@id([blockerId, blockedId])
 }
 
 // Auth.js (NextAuth v5) — Standardmodelle für den Prisma-Adapter.

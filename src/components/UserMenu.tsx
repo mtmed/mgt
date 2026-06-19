@@ -8,10 +8,12 @@ import { Avatar } from "@/components/Avatar";
 export function UserMenu({
   user,
   admin = false,
+  unread = 0,
   onSignOut,
 }: {
   user: { id: string; name: string };
   admin?: boolean;
+  unread?: number;
   onSignOut?: () => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
@@ -23,9 +25,15 @@ export function UserMenu({
         onClick={() => setOpen((o) => !o)}
         aria-label="Mein Menü"
         aria-expanded={open}
-        className="flex rounded-full ring-2 ring-transparent transition hover:ring-border-soft"
+        className="relative flex rounded-full ring-2 ring-transparent transition hover:ring-border-soft"
       >
         <Avatar id={user.id} name={user.name} size={30} />
+        {unread > 0 && (
+          <span
+            aria-hidden
+            className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-kobalt"
+          />
+        )}
       </button>
       {open && (
         <>
@@ -60,6 +68,18 @@ export function UserMenu({
               className="block px-3 py-2 text-sm hover:bg-eisblau/20"
             >
               Gespeichert
+            </Link>
+            <Link
+              href="/postfach"
+              onClick={() => setOpen(false)}
+              className="flex items-center justify-between px-3 py-2 text-sm hover:bg-eisblau/20"
+            >
+              Postfach
+              {unread > 0 && (
+                <span className="rounded-full bg-kobalt px-1.5 text-[11px] font-semibold text-white">
+                  {unread}
+                </span>
+              )}
             </Link>
             {admin && (
               <Link

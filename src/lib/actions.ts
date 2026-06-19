@@ -320,6 +320,13 @@ export async function deleteAccount(formData: FormData): Promise<void> {
     prisma.bookmark.deleteMany({ where: { userId: me.id } }),
     prisma.pauseReaction.deleteMany({ where: { userId: me.id } }),
     prisma.adminMessage.deleteMany({ where: { senderId: me.id } }),
+    // Private Konversationen (inkl. Nachrichten per Cascade) und Blockierungen.
+    prisma.conversation.deleteMany({
+      where: { OR: [{ userAId: me.id }, { userBId: me.id }] },
+    }),
+    prisma.block.deleteMany({
+      where: { OR: [{ blockerId: me.id }, { blockedId: me.id }] },
+    }),
     prisma.session.deleteMany({ where: { userId: me.id } }),
     prisma.account.deleteMany({ where: { userId: me.id } }),
     prisma.user.update({
