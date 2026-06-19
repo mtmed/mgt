@@ -8,9 +8,11 @@ import { Avatar } from "@/components/Avatar";
 export function UserMenu({
   user,
   admin = false,
+  onSignOut,
 }: {
   user: { id: string; name: string };
   admin?: boolean;
+  onSignOut?: () => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -67,6 +69,16 @@ export function UserMenu({
               >
                 Admin
               </Link>
+            )}
+            {onSignOut && (
+              <form action={onSignOut} className="border-t border-border-soft">
+                <button
+                  type="submit"
+                  className="block w-full px-3 py-2 text-left text-sm hover:bg-eisblau/20"
+                >
+                  Abmelden
+                </button>
+              </form>
             )}
           </div>
         </>

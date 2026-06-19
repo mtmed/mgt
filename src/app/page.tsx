@@ -107,11 +107,11 @@ export default async function HomePage({
     <div
       className={`anim-in surface-transition -mx-4 -mt-6 min-h-full px-4 pb-6 pt-6 ${TAB_BG[tab]}`}
     >
-      <FeedTabs active={tab} />
-
-      <div className="mt-4">
+      <div className="mb-4">
         <KorpusStats />
       </div>
+
+      <FeedTabs active={tab} />
 
       {tab === "tag" && (
         <div className="mt-4">

@@ -31,6 +31,14 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#1E46E0" };
 
+// Prototyp: feste Berufsangabe. Später aus dem Nutzerprofil.
+const PROFESSION = "Arbeitsmedizin";
+
+async function signOutAction() {
+  "use server";
+  await signOut({ redirectTo: "/" });
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -77,23 +85,20 @@ export default async function RootLayout({
                         in Prüfung
                       </span>
                     )}
-                    <form
-                      action={async () => {
-                        "use server";
-                        await signOut({ redirectTo: "/" });
-                      }}
-                    >
-                      <button className="rounded-md border border-border-soft px-2 py-1 text-xs hover:border-kobalt/40">
-                        Abmelden
-                      </button>
-                    </form>
+                    <span className="rounded-md border border-border-soft px-2 py-1 text-xs text-muted">
+                      {PROFESSION}
+                    </span>
                     <UserMenu
                       user={{ id: sessionUser.id, name: sessionUser.name }}
                       admin={sessionUser.admin}
+                      onSignOut={signOutAction}
                     />
                   </div>
                 ) : current ? (
                   <div className="flex items-center gap-2">
+                    <span className="rounded-md border border-border-soft px-2 py-1 text-xs text-muted">
+                      {PROFESSION}
+                    </span>
                     <UserSwitcher
                       users={SEED_USERS.map((u) => ({ id: u.id, name: u.name }))}
                       currentId={current.id}
