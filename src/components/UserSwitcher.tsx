@@ -1,14 +1,11 @@
 "use client";
 
 import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { switchUser } from "@/lib/actions";
 import { Avatar } from "@/components/Avatar";
 
-const ADMIN_VALUE = "__admin__";
-
 // Nur bis zum echten Login: aktive:n Seed-Nutzer:in umschalten.
-// Zusätzlich „Admin …" → führt zur passwortgeschützten Admin-Seite.
+// Der Seed-Nutzer „Admin" trägt das Admin-Flag — umschalten = als Admin testen.
 export function UserSwitcher({
   users,
   currentId,
@@ -17,7 +14,6 @@ export function UserSwitcher({
   currentId: string;
 }) {
   const [pending, startTransition] = useTransition();
-  const router = useRouter();
   const current = users.find((u) => u.id === currentId) ?? users[0];
 
   return (
@@ -27,12 +23,7 @@ export function UserSwitcher({
         value={currentId}
         disabled={pending}
         onChange={(e) => {
-          const value = e.target.value;
-          if (value === ADMIN_VALUE) {
-            router.push("/admin");
-            return;
-          }
-          startTransition(() => switchUser(value));
+          startTransition(() => switchUser(e.target.value));
         }}
         className="max-w-[9rem] truncate rounded-md border border-border-soft bg-white px-2 py-1 text-xs"
       >
@@ -41,8 +32,6 @@ export function UserSwitcher({
             {u.name}
           </option>
         ))}
-        <option disabled>──────────</option>
-        <option value={ADMIN_VALUE}>Admin …</option>
       </select>
     </label>
   );

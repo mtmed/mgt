@@ -5,7 +5,13 @@ import { useState } from "react";
 import { Avatar } from "@/components/Avatar";
 
 // User-Kreis im Header → Menü mit eigenen & gespeicherten Beiträgen.
-export function UserMenu({ user }: { user: { id: string; name: string } }) {
+export function UserMenu({
+  user,
+  admin = false,
+}: {
+  user: { id: string; name: string };
+  admin?: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -53,6 +59,15 @@ export function UserMenu({ user }: { user: { id: string; name: string } }) {
             >
               Gespeichert
             </Link>
+            {admin && (
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className="block border-t border-border-soft px-3 py-2 text-sm text-kobalt hover:bg-eisblau/20"
+              >
+                Admin
+              </Link>
+            )}
           </div>
         </>
       )}

@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { adminConfigured, isAdmin } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin";
 import {
-  adminLogout,
   approveTag,
   approveUser,
   deletePost,
@@ -12,7 +11,6 @@ import {
   unhidePost,
 } from "@/lib/admin-actions";
 import { getLabels, LABEL_DEFS } from "@/lib/labels";
-import { AdminLogin } from "@/components/AdminLogin";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin · bada bup" };
@@ -45,23 +43,13 @@ export default async function AdminPage({
 }) {
   const { saved } = await searchParams;
 
-  if (!adminConfigured()) {
-    return (
-      <Shell>
-        <p className="rounded-md border border-border-soft bg-white p-4 text-sm text-muted">
-          Admin ist nicht konfiguriert: <code>ADMIN_PASSWORD</code> fehlt. Lokal in
-          <code> .env</code> setzen, in Vercel als Environment-Variable anlegen.
-        </p>
-      </Shell>
-    );
-  }
-
   if (!(await isAdmin())) {
     return (
       <Shell>
-        <div className="max-w-sm rounded-[12px] border border-border-soft bg-white p-5">
-          <AdminLogin />
-        </div>
+        <p className="rounded-md border border-border-soft bg-white p-4 text-sm text-muted">
+          Kein Zugriff. Diese Seite ist nur für Admin-Konten. Melde dich mit dem
+          Admin-Account an.
+        </p>
       </Shell>
     );
   }
@@ -150,12 +138,6 @@ export default async function AdminPage({
 
   return (
     <Shell>
-      <form action={adminLogout} className="mb-4">
-        <button type="submit" className="text-sm text-kobalt hover:underline">
-          Abmelden
-        </button>
-      </form>
-
       {/* Kennzahlen */}
       <h2 className="mb-2 text-lg font-semibold">Kennzahlen</h2>
       <p className="mb-3 text-xs text-muted">

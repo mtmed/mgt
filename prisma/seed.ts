@@ -359,6 +359,20 @@ async function main() {
       });
     }
 
+    // Dedizierter Admin-Account: im Feed als „Admin" sichtbar, kann posten,
+    // trägt Moderationsrechte. Nicht Teil der Kohorte (ALL) für Konsens-Bänder.
+    await prisma.user.upsert({
+      where: { id: "u-admin" },
+      update: { name: "Admin", role: "Moderation", approved: true, admin: true },
+      create: {
+        id: "u-admin",
+        name: "Admin",
+        role: "Moderation",
+        approved: true,
+        admin: true,
+      },
+    });
+
     for (const p of POSTS) {
       const data = {
         intent: p.intent,

@@ -10,6 +10,7 @@ export const SEED_USERS = [
   { id: "u-mira", name: "Dr. Mira Falk", role: "Arbeitsmedizinerin" },
   { id: "u-jonas", name: "Dr. Jonas Berger", role: "Arbeitsmediziner" },
   { id: "u-amelie", name: "Dr. Amelie Stark", role: "Arbeitsmedizinerin" },
+  { id: "u-admin", name: "Admin", role: "Moderation", admin: true },
 ] as const;
 
 const COOKIE_NAME = "uid";
@@ -17,8 +18,8 @@ const DEFAULT_USER_ID = SEED_USERS[0].id;
 
 /**
  * Echte:r angemeldete:r Nutzer:in (Auth.js-Session) oder null.
- * Solange ADMIN_PASSWORD… nein: solange AUTH_SECRET nicht gesetzt ist, gibt es
- * keine Session — dann greift der Dev-Fallback in getCurrentUser.
+ * Solange AUTH_SECRET nicht gesetzt ist, gibt es keine Session — dann greift
+ * der Dev-Fallback (Cookie-Umschalter) in getCurrentUser.
  */
 export async function getSessionUser(): Promise<User | null> {
   if (!process.env.AUTH_SECRET) return null;
@@ -26,7 +27,20 @@ export async function getSessionUser(): Promise<User | null> {
     const session = await auth();
     const email = session?.user?.email;
     if (!email) return null;
-    return await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email } });
+    // Designierte Admin-Adresse (ENV) wird beim Login zum Admin promotet.
+    if (
+      user &&
+      process.env.ADMIN_EMAIL &&
+      email === process.env.ADMIN_EMAIL &&
+      (!user.admin || !user.approved)
+    ) {
+      return prisma.user.update({
+        where: { id: user.id },
+        data: { admin: true, approved: true },
+      });
+    }
+    return user;
   } catch {
     return null;
   }
@@ -57,10 +71,11 @@ export async function getCurrentUser(): Promise<User | null> {
 
   // Falls noch nicht geseedet (z. B. frische DB): den/die Default-Nutzer:in anlegen.
   const fallback = SEED_USERS.find((u) => u.id === wanted) ?? SEED_USERS[0];
+  const admin = "admin" in fallback ? fallback.admin : false;
   return prisma.user.upsert({
     where: { id: fallback.id },
-    update: {},
-    create: { ...fallback, approved: true },
+    update: { admin },
+    create: { ...fallback, approved: true, admin },
   });
 }
 

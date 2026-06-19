@@ -32,6 +32,7 @@ model User {
   name          String
   role          String    @default("Arbeitsmediziner:in")
   approved      Boolean   @default(false) // manuelle Freischaltung durch Admin
+  admin         Boolean   @default(false) // Moderationsrechte (dedizierter Account)
   email         String?   @unique
   emailVerified DateTime?
   image         String?

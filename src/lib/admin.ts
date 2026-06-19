@@ -1,17 +1,8 @@
-import { cookies } from "next/headers";
+import { getCurrentUser } from "@/lib/users";
 
-// Einfaches Admin-Gate per Passwort (Env). Cookie hält den Passwortwert
-// (httpOnly) und wird gegen ADMIN_PASSWORD geprüft — nur mit Kenntnis des
-// Passworts ist der Cookie gültig.
-export const ADMIN_COOKIE = "admin_token";
-
-export function adminConfigured(): boolean {
-  return Boolean(process.env.ADMIN_PASSWORD);
-}
-
+// Admin = eingeloggte:r Nutzer:in mit Admin-Flag (dedizierter Account).
+// Kein separates Passwort-Gate mehr.
 export async function isAdmin(): Promise<boolean> {
-  const pw = process.env.ADMIN_PASSWORD;
-  if (!pw) return false;
-  const value = (await cookies()).get(ADMIN_COOKIE)?.value;
-  return Boolean(value) && value === pw;
+  const user = await getCurrentUser();
+  return user?.admin === true;
 }
