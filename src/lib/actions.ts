@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { signOut } from "@/auth";
 import { getCurrentUser, SEED_USERS, USER_COOKIE } from "@/lib/users";
 import {
   createAnswerSchema,
@@ -301,6 +302,56 @@ export async function toggleBookmark(postId: string): Promise<void> {
   }
   revalidatePath(`/posts/${postId}`);
   revalidatePath("/meine");
+}
+
+// Konto löschen (Recht auf Vergessenwerden): Identität wird anonymisiert,
+// die fachlichen Beiträge bleiben als Teil des Korpus erhalten — aber als
+// „Nutzer gelöscht". Persönliche Signale (Lesezeichen, Pause-Reaktionen,
+// Nachrichten, Login) werden entfernt.
+export async function deleteAccount(): Promise<void> {
+  const me = await getCurrentUser();
+  if (!me) return;
+
+  await prisma.$transaction([
+    prisma.bookmark.deleteMany({ where: { userId: me.id } }),
+    prisma.pauseReaction.deleteMany({ where: { userId: me.id } }),
+    prisma.adminMessage.deleteMany({ where: { senderId: me.id } }),
+    prisma.session.deleteMany({ where: { userId: me.id } }),
+    prisma.account.deleteMany({ where: { userId: me.id } }),
+    prisma.user.update({
+      where: { id: me.id },
+      data: {
+        name: "Nutzer gelöscht",
+        email: null,
+        image: null,
+        role: "—",
+        approved: false,
+        admin: false,
+        deleted: true,
+        deletedAt: new Date(),
+      },
+    }),
+  ]);
+
+  // Dev-Umschalter-Cookie leeren und abmelden (signOut leitet auf „/" um).
+  (await cookies()).delete(USER_COOKIE);
+  await signOut({ redirectTo: "/" });
+}
+
+// Nachricht an den Admin (aus dem ⓘ-Menü). Absender ist die angemeldete Person.
+export async function sendAdminMessage(
+  _prev: FormState & { ok?: boolean },
+  formData: FormData,
+): Promise<FormState & { ok?: boolean }> {
+  const me = await getCurrentUser();
+  if (!me) return { error: "Nicht angemeldet." };
+  const body = String(formData.get("body") ?? "").trim();
+  if (body.length < 3) return { error: "Bitte schreibe eine Nachricht." };
+  if (body.length > 2000)
+    return { error: "Die Nachricht ist zu lang (max. 2000 Zeichen)." };
+
+  await prisma.adminMessage.create({ data: { body, senderId: me.id } });
+  return { ok: true };
 }
 
 // Nutzer-Umschalter (nur bis zum echten Login).

@@ -1,0 +1,62 @@
+"use client";
+
+import { useState } from "react";
+import { useFormStatus } from "react-dom";
+import { deleteAccount } from "@/lib/actions";
+
+function ConfirmButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-60"
+    >
+      {pending ? "Wird gelöscht …" : "Endgültig löschen"}
+    </button>
+  );
+}
+
+export function DeleteAccountSection() {
+  const [confirming, setConfirming] = useState(false);
+
+  return (
+    <div className="mt-10 border-t border-border-soft pt-5">
+      <h2 className="text-sm font-semibold">Konto löschen</h2>
+      <p className="mt-1 text-xs text-muted">
+        Dein Konto und deine persönlichen Daten werden entfernt. Deine
+        fachlichen Beiträge und Antworten bleiben als Teil des gemeinsamen
+        Wissens erhalten — aber anonymisiert als „Nutzer gelöscht“. Das lässt
+        sich nicht rückgängig machen.
+      </p>
+
+      {!confirming ? (
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          className="mt-3 rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+        >
+          Konto löschen
+        </button>
+      ) : (
+        <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3">
+          <p className="text-xs text-red-700">
+            Wirklich löschen? Dieser Schritt ist endgültig.
+          </p>
+          <div className="mt-2 flex items-center gap-3">
+            <form action={deleteAccount}>
+              <ConfirmButton />
+            </form>
+            <button
+              type="button"
+              onClick={() => setConfirming(false)}
+              className="text-xs text-muted underline-offset-2 hover:underline"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

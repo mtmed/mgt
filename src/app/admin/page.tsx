@@ -4,7 +4,9 @@ import { isAdmin } from "@/lib/admin";
 import {
   approveTag,
   approveUser,
+  deleteMessage,
   deletePost,
+  markMessageRead,
   rejectTag,
   revokeUser,
   saveLabels,
@@ -14,6 +16,8 @@ import { getLabels, LABEL_DEFS } from "@/lib/labels";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin · bada bup" };
+
+type View = "community" | "kennzahlen" | "system";
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -36,12 +40,53 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   );
 }
 
+function Tabs({ view, todo }: { view: View; todo: number }) {
+  const tabs: { key: View; label: string; badge?: number }[] = [
+    { key: "community", label: "Community", badge: todo },
+    { key: "kennzahlen", label: "Kennzahlen" },
+    { key: "system", label: "System" },
+  ];
+  return (
+    <nav className="mb-5 flex gap-1 border-b border-border-soft">
+      {tabs.map((t) => {
+        const active = t.key === view;
+        return (
+          <Link
+            key={t.key}
+            href={`/admin?view=${t.key}`}
+            className={
+              active
+                ? "-mb-px flex items-center gap-1.5 rounded-t-lg border border-b-0 border-border-soft bg-white px-3 py-2 text-sm font-semibold text-kobalt"
+                : "flex items-center gap-1.5 rounded-t-lg border border-transparent px-3 py-2 text-sm font-medium text-muted hover:text-ink"
+            }
+          >
+            {t.label}
+            {t.badge ? (
+              <span className="rounded-full bg-kobalt px-1.5 text-[11px] font-semibold text-white">
+                {t.badge}
+              </span>
+            ) : null}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+const fmtDate = (d: Date) =>
+  new Intl.DateTimeFormat("de-AT", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(d);
+
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; view?: string }>;
 }) {
-  const { saved } = await searchParams;
+  const { saved, view: rawView } = await searchParams;
+  const view: View =
+    rawView === "kennzahlen" || rawView === "system" ? rawView : "community";
 
   if (!(await isAdmin())) {
     return (
@@ -54,7 +99,6 @@ export default async function AdminPage({
     );
   }
 
-  // --- Kennzahlen (aggregiert, §9: kein Personenprofil) ---
   const [
     totalPosts,
     seek,
@@ -72,6 +116,8 @@ export default async function AdminPage({
     approvedMembers,
     hiddenPosts,
     seekWithFirst,
+    messages,
+    unreadCount,
     labels,
   ] = await Promise.all([
     prisma.post.count(),
@@ -90,12 +136,12 @@ export default async function AdminPage({
     }),
     prisma.tag.findMany({ where: { approved: false }, orderBy: { createdAt: "desc" } }),
     prisma.user.findMany({
-      where: { approved: false },
+      where: { approved: false, deleted: false },
       orderBy: { createdAt: "desc" },
       select: { id: true, name: true, email: true, createdAt: true },
     }),
     prisma.user.findMany({
-      where: { approved: true, email: { not: null } },
+      where: { approved: true, deleted: false, email: { not: null } },
       orderBy: { name: "asc" },
       select: { id: true, name: true, email: true },
     }),
@@ -111,6 +157,11 @@ export default async function AdminPage({
         answers: { select: { createdAt: true }, orderBy: { createdAt: "asc" }, take: 1 },
       },
     }),
+    prisma.adminMessage.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { sender: { select: { name: true } } },
+    }),
+    prisma.adminMessage.count({ where: { read: false } }),
     getLabels(),
   ]);
 
@@ -135,214 +186,283 @@ export default async function AdminPage({
     .slice(0, 8);
 
   const labelGroups = [...new Set(LABEL_DEFS.map((d) => d.group))];
+  const todo = pendingUsers.length + unreadCount + hiddenPosts.length;
 
   return (
     <Shell>
-      {/* Kennzahlen */}
-      <h2 className="mb-2 text-lg font-semibold">Kennzahlen</h2>
-      <p className="mb-3 text-xs text-muted">
-        Aggregiert, intern. Keine personenbezogenen Profile.
-      </p>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <Stat label="Beiträge gesamt" value={totalPosts} />
-        <Stat label="Fälle (SEEK)" value={seek} />
-        <Stat label="Infos (GIVE)" value={give} />
-        <Stat label="Pause" value={pause} />
-        <Stat label="Lösungsquote" value={`${solveRate} %`} />
-        <Stat label="Ø Antworten / Fall" value={avgAnswers} />
-        <Stat label="Ø Zeit bis 1. Antwort" value={`${avgFirstAnswerH} h`} />
-        <Stat label="Antworten gesamt" value={answers} />
-        <Stat label="aktive Antwortende" value={answerers.length} />
-        <Stat label="Zustimmungen" value={endorsements} />
-        <Stat label="Pause-Reaktionen" value={pauseReactions} />
-        <Stat label="bewusste Divergenzen" value={diverges} />
-      </div>
+      <Tabs view={view} todo={todo} />
 
-      <h3 className="mt-5 mb-2 text-sm font-semibold">Aktivität je Thema</h3>
-      <div className="flex flex-wrap gap-1.5">
-        {topTags.length === 0 ? (
-          <span className="text-sm text-muted">Noch keine verschlagworteten Beiträge.</span>
-        ) : (
-          topTags.map((t) => (
-            <span
-              key={t.label}
-              className="rounded-full border border-chip-quelle-bd bg-chip-quelle-bg px-2 py-0.5 text-xs text-kobalt"
-            >
-              {t.label} · {t._count.posts}
-            </span>
-          ))
-        )}
-      </div>
-
-      {/* Nutzer freischalten */}
-      <h2 className="mt-8 mb-2 text-lg font-semibold">
-        Zugänge freischalten ({pendingUsers.length})
-      </h2>
-      <p className="mb-3 text-xs text-muted">
-        Neue Anmeldungen warten auf manuelle Freigabe. {approvedMembers.length}{" "}
-        Mitglied(er) freigeschaltet.
-      </p>
-      {pendingUsers.length === 0 ? (
-        <p className="text-sm text-muted">Keine offenen Anmeldungen.</p>
-      ) : (
-        <ul className="space-y-2">
-          {pendingUsers.map((u) => (
-            <li
-              key={u.id}
-              className="flex items-center justify-between gap-3 rounded-md border border-border-soft bg-white p-3"
-            >
-              <span className="min-w-0 text-sm">
-                <span className="font-medium">{u.name}</span>{" "}
-                <span className="text-muted">{u.email ?? "(keine E-Mail)"}</span>
-              </span>
-              <form action={approveUser}>
-                <input type="hidden" name="userId" value={u.id} />
-                <button className="shrink-0 rounded-md border border-kobalt px-2 py-1 text-xs font-semibold text-kobalt hover:bg-eisblau/30">
-                  Freischalten
-                </button>
-              </form>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {approvedMembers.length > 0 && (
-        <details className="mt-3">
-          <summary className="cursor-pointer text-sm text-muted hover:text-ink">
-            Freigeschaltete Mitglieder ({approvedMembers.length})
-          </summary>
-          <ul className="mt-2 space-y-2">
-            {approvedMembers.map((u) => (
-              <li
-                key={u.id}
-                className="flex items-center justify-between gap-3 rounded-md border border-border-soft bg-white p-3"
-              >
-                <span className="min-w-0 text-sm">
-                  <span className="font-medium">{u.name}</span>{" "}
-                  <span className="text-muted">{u.email}</span>
-                </span>
-                <form action={revokeUser}>
-                  <input type="hidden" name="userId" value={u.id} />
-                  <button className="shrink-0 rounded-md border border-border-soft px-2 py-1 text-xs text-muted hover:text-ink">
-                    Freigabe zurücknehmen
-                  </button>
-                </form>
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-
-      {/* Ausgeblendete Beiträge */}
-      <h2 className="mt-8 mb-2 text-lg font-semibold">
-        Ausgeblendete Beiträge ({hiddenPosts.length})
-      </h2>
-      {hiddenPosts.length === 0 ? (
-        <p className="text-sm text-muted">Keine ausgeblendeten Beiträge.</p>
-      ) : (
-        <ul className="space-y-2">
-          {hiddenPosts.map((p) => (
-            <li
-              key={p.id}
-              className="flex items-center justify-between gap-3 rounded-md border border-border-soft bg-white p-3"
-            >
-              <span className="min-w-0 truncate text-sm">
-                {p.title ?? p.text.slice(0, 60)}
-              </span>
-              <span className="flex shrink-0 gap-2">
-                <form action={unhidePost}>
-                  <input type="hidden" name="postId" value={p.id} />
-                  <button className="rounded-md border border-kobalt px-2 py-1 text-xs font-semibold text-kobalt hover:bg-eisblau/30">
-                    Wiederherstellen
-                  </button>
-                </form>
-                <form action={deletePost}>
-                  <input type="hidden" name="postId" value={p.id} />
-                  <button className="rounded-md border border-border-soft px-2 py-1 text-xs text-red-600 hover:bg-red-50">
-                    Löschen
-                  </button>
-                </form>
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {/* Vorgeschlagene Tags */}
-      <h2 className="mt-8 mb-2 text-lg font-semibold">
-        Vorgeschlagene Themen ({pendingTags.length})
-      </h2>
-      {pendingTags.length === 0 ? (
-        <p className="text-sm text-muted">Keine offenen Vorschläge.</p>
-      ) : (
-        <ul className="space-y-2">
-          {pendingTags.map((t) => (
-            <li
-              key={t.id}
-              className="flex items-center justify-between gap-3 rounded-md border border-border-soft bg-white p-3"
-            >
-              <span className="text-sm">{t.label}</span>
-              <span className="flex gap-2">
-                <form action={approveTag}>
-                  <input type="hidden" name="tagId" value={t.id} />
-                  <button className="rounded-md border border-kobalt px-2 py-1 text-xs font-semibold text-kobalt hover:bg-eisblau/30">
-                    Freigeben
-                  </button>
-                </form>
-                <form action={rejectTag}>
-                  <input type="hidden" name="tagId" value={t.id} />
-                  <button className="rounded-md border border-border-soft px-2 py-1 text-xs text-muted hover:text-ink">
-                    Verwerfen
-                  </button>
-                </form>
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {/* Beschriftungen */}
-      <h2 className="mt-8 mb-2 text-lg font-semibold">Beschriftungen</h2>
-      {saved && (
-        <p className="mb-3 rounded-md border border-kobalt bg-eisblau/30 px-3 py-2 text-sm text-kobalt">
-          Gespeichert.
-        </p>
-      )}
-      <p className="mb-3 text-xs text-muted">
-        Leer lassen = Standardtext verwenden.
-      </p>
-      <form action={saveLabels} className="space-y-5">
-        {labelGroups.map((group) => (
-          <fieldset key={group} className="rounded-[12px] border border-border-soft bg-white p-4">
-            <legend className="px-1 text-sm font-semibold">{group}</legend>
-            <div className="space-y-3">
-              {LABEL_DEFS.filter((d) => d.group === group).map((d) => (
-                <div key={d.key}>
-                  <label
-                    htmlFor={`label_${d.key}`}
-                    className="block text-xs text-muted"
-                  >
-                    {d.desc}
-                  </label>
-                  <input
-                    id={`label_${d.key}`}
-                    name={`label_${d.key}`}
-                    defaultValue={labels[d.key]}
-                    placeholder={d.def}
-                    className="mt-1 w-full rounded-md border border-border-soft px-3 py-2 text-sm focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
-                  />
-                </div>
+      {/* ---------------- COMMUNITY ---------------- */}
+      {view === "community" && (
+        <>
+          {/* Nutzer freischalten */}
+          <h2 className="mb-2 text-lg font-semibold">
+            Anfragen ({pendingUsers.length})
+          </h2>
+          <p className="mb-3 text-xs text-muted">
+            Neue Anmeldungen warten auf manuelle Freigabe. {approvedMembers.length}{" "}
+            Mitglied(er) freigeschaltet.
+          </p>
+          {pendingUsers.length === 0 ? (
+            <p className="text-sm text-muted">Keine offenen Anmeldungen.</p>
+          ) : (
+            <ul className="space-y-2">
+              {pendingUsers.map((u) => (
+                <li
+                  key={u.id}
+                  className="flex items-center justify-between gap-3 rounded-md border border-border-soft bg-white p-3"
+                >
+                  <span className="min-w-0 text-sm">
+                    <span className="font-medium">{u.name}</span>{" "}
+                    <span className="text-muted">{u.email ?? "(keine E-Mail)"}</span>
+                  </span>
+                  <form action={approveUser}>
+                    <input type="hidden" name="userId" value={u.id} />
+                    <button className="shrink-0 rounded-md border border-kobalt px-2 py-1 text-xs font-semibold text-kobalt hover:bg-eisblau/30">
+                      Freischalten
+                    </button>
+                  </form>
+                </li>
               ))}
-            </div>
-          </fieldset>
-        ))}
-        <button
-          type="submit"
-          className="rounded-md bg-kobalt px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-        >
-          Beschriftungen speichern
-        </button>
-      </form>
+            </ul>
+          )}
+
+          {approvedMembers.length > 0 && (
+            <details className="mt-3">
+              <summary className="cursor-pointer text-sm text-muted hover:text-ink">
+                Freigeschaltete Mitglieder ({approvedMembers.length})
+              </summary>
+              <ul className="mt-2 space-y-2">
+                {approvedMembers.map((u) => (
+                  <li
+                    key={u.id}
+                    className="flex items-center justify-between gap-3 rounded-md border border-border-soft bg-white p-3"
+                  >
+                    <span className="min-w-0 text-sm">
+                      <span className="font-medium">{u.name}</span>{" "}
+                      <span className="text-muted">{u.email}</span>
+                    </span>
+                    <form action={revokeUser}>
+                      <input type="hidden" name="userId" value={u.id} />
+                      <button className="shrink-0 rounded-md border border-border-soft px-2 py-1 text-xs text-muted hover:text-ink">
+                        Freigabe zurücknehmen
+                      </button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
+          {/* Nachrichten */}
+          <h2 className="mt-8 mb-2 text-lg font-semibold">
+            Nachrichten ({unreadCount} ungelesen)
+          </h2>
+          {messages.length === 0 ? (
+            <p className="text-sm text-muted">Keine Nachrichten.</p>
+          ) : (
+            <ul className="space-y-2">
+              {messages.map((m) => (
+                <li
+                  key={m.id}
+                  className={`rounded-md border p-3 ${
+                    m.read
+                      ? "border-border-soft bg-white"
+                      : "border-kobalt/40 bg-eisblau/20"
+                  }`}
+                >
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm font-medium">{m.sender.name}</span>
+                    <span className="shrink-0 text-xs text-muted">
+                      {fmtDate(m.createdAt)}
+                    </span>
+                  </div>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-ink/85">
+                    {m.body}
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    {!m.read && (
+                      <form action={markMessageRead}>
+                        <input type="hidden" name="messageId" value={m.id} />
+                        <button className="rounded-md border border-kobalt px-2 py-1 text-xs font-semibold text-kobalt hover:bg-eisblau/30">
+                          Als gelesen markieren
+                        </button>
+                      </form>
+                    )}
+                    <form action={deleteMessage}>
+                      <input type="hidden" name="messageId" value={m.id} />
+                      <button className="rounded-md border border-border-soft px-2 py-1 text-xs text-red-600 hover:bg-red-50">
+                        Löschen
+                      </button>
+                    </form>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Ausgeblendete Beiträge */}
+          <h2 className="mt-8 mb-2 text-lg font-semibold">
+            Ausgeblendete Beiträge ({hiddenPosts.length})
+          </h2>
+          {hiddenPosts.length === 0 ? (
+            <p className="text-sm text-muted">Keine ausgeblendeten Beiträge.</p>
+          ) : (
+            <ul className="space-y-2">
+              {hiddenPosts.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between gap-3 rounded-md border border-border-soft bg-white p-3"
+                >
+                  <span className="min-w-0 truncate text-sm">
+                    {p.title ?? p.text.slice(0, 60)}
+                  </span>
+                  <span className="flex shrink-0 gap-2">
+                    <form action={unhidePost}>
+                      <input type="hidden" name="postId" value={p.id} />
+                      <button className="rounded-md border border-kobalt px-2 py-1 text-xs font-semibold text-kobalt hover:bg-eisblau/30">
+                        Wiederherstellen
+                      </button>
+                    </form>
+                    <form action={deletePost}>
+                      <input type="hidden" name="postId" value={p.id} />
+                      <button className="rounded-md border border-border-soft px-2 py-1 text-xs text-red-600 hover:bg-red-50">
+                        Löschen
+                      </button>
+                    </form>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+
+      {/* ---------------- KENNZAHLEN ---------------- */}
+      {view === "kennzahlen" && (
+        <>
+          <h2 className="mb-2 text-lg font-semibold">Kennzahlen</h2>
+          <p className="mb-3 text-xs text-muted">
+            Aggregiert, intern. Keine personenbezogenen Profile.
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <Stat label="Beiträge gesamt" value={totalPosts} />
+            <Stat label="Fälle (SEEK)" value={seek} />
+            <Stat label="Infos (GIVE)" value={give} />
+            <Stat label="Pause" value={pause} />
+            <Stat label="Lösungsquote" value={`${solveRate} %`} />
+            <Stat label="Ø Antworten / Fall" value={avgAnswers} />
+            <Stat label="Ø Zeit bis 1. Antwort" value={`${avgFirstAnswerH} h`} />
+            <Stat label="Antworten gesamt" value={answers} />
+            <Stat label="aktive Antwortende" value={answerers.length} />
+            <Stat label="Zustimmungen" value={endorsements} />
+            <Stat label="Pause-Reaktionen" value={pauseReactions} />
+            <Stat label="bewusste Divergenzen" value={diverges} />
+          </div>
+
+          <h3 className="mt-5 mb-2 text-sm font-semibold">Aktivität je Thema</h3>
+          <div className="flex flex-wrap gap-1.5">
+            {topTags.length === 0 ? (
+              <span className="text-sm text-muted">
+                Noch keine verschlagworteten Beiträge.
+              </span>
+            ) : (
+              topTags.map((t) => (
+                <span
+                  key={t.label}
+                  className="rounded-full border border-chip-quelle-bd bg-chip-quelle-bg px-2 py-0.5 text-xs text-kobalt"
+                >
+                  {t.label} · {t._count.posts}
+                </span>
+              ))
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ---------------- SYSTEM ---------------- */}
+      {view === "system" && (
+        <>
+          {/* Vorgeschlagene Tags */}
+          <h2 className="mb-2 text-lg font-semibold">
+            Vorgeschlagene Themen ({pendingTags.length})
+          </h2>
+          {pendingTags.length === 0 ? (
+            <p className="text-sm text-muted">Keine offenen Vorschläge.</p>
+          ) : (
+            <ul className="space-y-2">
+              {pendingTags.map((t) => (
+                <li
+                  key={t.id}
+                  className="flex items-center justify-between gap-3 rounded-md border border-border-soft bg-white p-3"
+                >
+                  <span className="text-sm">{t.label}</span>
+                  <span className="flex gap-2">
+                    <form action={approveTag}>
+                      <input type="hidden" name="tagId" value={t.id} />
+                      <button className="rounded-md border border-kobalt px-2 py-1 text-xs font-semibold text-kobalt hover:bg-eisblau/30">
+                        Freigeben
+                      </button>
+                    </form>
+                    <form action={rejectTag}>
+                      <input type="hidden" name="tagId" value={t.id} />
+                      <button className="rounded-md border border-border-soft px-2 py-1 text-xs text-muted hover:text-ink">
+                        Verwerfen
+                      </button>
+                    </form>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Beschriftungen */}
+          <h2 className="mt-8 mb-2 text-lg font-semibold">Beschriftungen</h2>
+          {saved && (
+            <p className="mb-3 rounded-md border border-kobalt bg-eisblau/30 px-3 py-2 text-sm text-kobalt">
+              Gespeichert.
+            </p>
+          )}
+          <p className="mb-3 text-xs text-muted">
+            Leer lassen = Standardtext verwenden.
+          </p>
+          <form action={saveLabels} className="space-y-5">
+            {labelGroups.map((group) => (
+              <fieldset
+                key={group}
+                className="rounded-[12px] border border-border-soft bg-white p-4"
+              >
+                <legend className="px-1 text-sm font-semibold">{group}</legend>
+                <div className="space-y-3">
+                  {LABEL_DEFS.filter((d) => d.group === group).map((d) => (
+                    <div key={d.key}>
+                      <label
+                        htmlFor={`label_${d.key}`}
+                        className="block text-xs text-muted"
+                      >
+                        {d.desc}
+                      </label>
+                      <input
+                        id={`label_${d.key}`}
+                        name={`label_${d.key}`}
+                        defaultValue={labels[d.key]}
+                        placeholder={d.def}
+                        className="mt-1 w-full rounded-md border border-border-soft px-3 py-2 text-sm focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </fieldset>
+            ))}
+            <button
+              type="submit"
+              className="rounded-md bg-kobalt px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+            >
+              Beschriftungen speichern
+            </button>
+          </form>
+        </>
+      )}
     </Shell>
   );
 }

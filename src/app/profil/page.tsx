@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/users";
 import { ProfileForm } from "@/components/ProfileForm";
+import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Profil · bada bup" };
@@ -33,6 +34,8 @@ export default async function ProfilPage() {
           )}
         </p>
       </div>
+
+      <DeleteAccountSection />
     </div>
   );
 }

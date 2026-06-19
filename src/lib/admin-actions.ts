@@ -22,7 +22,7 @@ export async function saveLabels(formData: FormData): Promise<void> {
     }
   }
   revalidatePath("/", "layout");
-  redirect("/admin?saved=1");
+  redirect("/admin?view=system&saved=1");
 }
 
 export async function approveTag(formData: FormData): Promise<void> {
@@ -61,6 +61,22 @@ export async function deletePost(formData: FormData): Promise<void> {
   const id = String(formData.get("postId") ?? "");
   if (id) await prisma.post.delete({ where: { id } });
   revalidatePath("/", "layout");
+  revalidatePath("/admin");
+}
+
+// Nachricht an den Admin als gelesen markieren / löschen.
+export async function markMessageRead(formData: FormData): Promise<void> {
+  if (!(await isAdmin())) return;
+  const id = String(formData.get("messageId") ?? "");
+  if (id)
+    await prisma.adminMessage.update({ where: { id }, data: { read: true } });
+  revalidatePath("/admin");
+}
+
+export async function deleteMessage(formData: FormData): Promise<void> {
+  if (!(await isAdmin())) return;
+  const id = String(formData.get("messageId") ?? "");
+  if (id) await prisma.adminMessage.delete({ where: { id } });
   revalidatePath("/admin");
 }
 

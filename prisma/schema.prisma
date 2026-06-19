@@ -33,6 +33,8 @@ model User {
   role          String    @default("Arbeitsmediziner:in")
   approved      Boolean   @default(false) // manuelle Freischaltung durch Admin
   admin         Boolean   @default(false) // Moderationsrechte (dedizierter Account)
+  deleted       Boolean   @default(false) // Konto gelöscht: anonymisiert, Beiträge bleiben
+  deletedAt     DateTime?
   email         String?   @unique
   emailVerified DateTime?
   image         String?
@@ -45,6 +47,17 @@ model User {
   bookmarks      Bookmark[]
   accounts       Account[]
   sessions       Session[]
+  adminMessages  AdminMessage[]
+}
+
+// Nachricht an den Admin (aus dem ⓘ-Menü). Beim Konto-Löschen mitgelöscht.
+model AdminMessage {
+  id        String   @id @default(cuid())
+  body      String
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId  String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 // Auth.js (NextAuth v5) — Standardmodelle für den Prisma-Adapter.

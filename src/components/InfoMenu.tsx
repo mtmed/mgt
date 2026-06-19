@@ -49,7 +49,15 @@ export function InfoMenu() {
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-10 cursor-default"
           />
-          <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-md border border-border-soft bg-white py-1 shadow-md">
+          <div className="absolute right-0 top-full z-20 mt-1 w-48 rounded-md border border-border-soft bg-white py-1 shadow-md">
+            <Link
+              href="/nachricht"
+              onClick={() => setOpen(false)}
+              className="block px-3 py-2 text-sm font-medium text-kobalt hover:bg-eisblau/20"
+            >
+              Nachricht an Admin
+            </Link>
+            <div className="my-1 border-t border-border-soft" />
             {ITEMS.map((item) => (
               <Link
                 key={item.href}
