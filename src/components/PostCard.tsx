@@ -49,29 +49,38 @@ export function PostCard({
   if (isPause) {
     return (
       <div>
-      <Link
-        href={`/posts/${post.id}`}
-        className="block rounded-[18px] border border-dashed border-border-pause bg-sand p-4"
-      >
-        <span className="inline-block rounded-[6px] bg-chip-pause-bg px-2 py-0.5 text-xs font-medium text-terra-deep">
-          Pause
-        </span>
-        <p className="mt-2 text-sm leading-relaxed">{excerpt(post.text)}</p>
-        <div className="mt-3 flex items-center gap-2">
-          {post.pauseFaces.length > 0 ? (
-            <>
-              <span className="flex -space-x-1.5">
-                {post.pauseFaces.slice(0, 5).map((u) => (
-                  <Avatar key={u.id} id={u.id} name={u.name} size={22} />
-                ))}
-              </span>
-              <span className="text-xs text-muted">haben geschmunzelt</span>
-            </>
-          ) : (
-            <span className="text-xs text-muted">{post.author.name}</span>
-          )}
-        </div>
-      </Link>
+        <article className="relative rounded-[18px] border border-dashed border-border-pause bg-sand p-4">
+          <Link
+            href={`/posts/${post.id}`}
+            aria-label="Pause öffnen"
+            className="absolute inset-0 rounded-[18px]"
+          />
+          <span className="inline-block rounded-[6px] bg-chip-pause-bg px-2 py-0.5 text-xs font-medium text-terra-deep">
+            Pause
+          </span>
+          <p className="mt-2 text-sm leading-relaxed">{excerpt(post.text)}</p>
+          <div className="mt-3 flex items-center gap-2">
+            {post.pauseFaces.length > 0 ? (
+              <>
+                <span className="relative z-10 flex -space-x-1.5">
+                  {post.pauseFaces.slice(0, 5).map((u) => (
+                    <Link key={u.id} href={`/mitglied/${u.id}`} className="transition hover:-translate-y-0.5">
+                      <Avatar id={u.id} name={u.name} size={22} />
+                    </Link>
+                  ))}
+                </span>
+                <span className="text-xs text-muted">haben geschmunzelt</span>
+              </>
+            ) : (
+              <Link
+                href={`/mitglied/${post.author.id}`}
+                className="relative z-10 text-xs text-muted hover:underline"
+              >
+                {post.author.name}
+              </Link>
+            )}
+          </div>
+        </article>
         {adminBar}
       </div>
     );
@@ -80,10 +89,12 @@ export function PostCard({
   const tLabel = typeLabel(post.intent);
   return (
     <div>
-    <Link
-      href={`/posts/${post.id}`}
-      className="block rounded-[12px] border border-border-soft border-l-[3px] border-l-kobalt bg-card-fach p-4 hover:shadow-sm"
-    >
+    <article className="relative rounded-[12px] border border-border-soft border-l-[3px] border-l-kobalt bg-card-fach p-4 hover:shadow-sm">
+      <Link
+        href={`/posts/${post.id}`}
+        aria-label={post.title ?? "Beitrag öffnen"}
+        className="absolute inset-0 rounded-[12px]"
+      />
       <div className="flex items-center justify-between gap-2">
         <span className="inline-block rounded-[6px] bg-chip-neutral-bg px-2 py-0.5 text-xs font-medium text-chip-neutral-fg">
           {tLabel}
@@ -126,12 +137,17 @@ export function PostCard({
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-        <span className="inline-flex items-center gap-1.5">
-          {!post.isPseudonym && (
+        {post.isPseudonym ? (
+          <span className="inline-flex items-center gap-1.5">pseudonym</span>
+        ) : (
+          <Link
+            href={`/mitglied/${post.author.id}`}
+            className="relative z-10 inline-flex items-center gap-1.5 hover:underline"
+          >
             <Avatar id={post.author.id} name={post.author.name} size={20} />
-          )}
-          {post.isPseudonym ? "pseudonym" : post.author.name}
-        </span>
+            {post.author.name}
+          </Link>
+        )}
         {post.intent === "SEEK" && (
           <span>
             {post.answerCount}{" "}
@@ -150,7 +166,7 @@ export function PostCard({
           </span>
         )}
       </div>
-    </Link>
+    </article>
       {adminBar}
     </div>
   );
