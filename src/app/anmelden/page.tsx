@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { signIn, signOut, LOGIN_EMAIL_COOKIE } from "@/auth";
+import { signOut } from "@/auth";
 import { getSessionUser } from "@/lib/users";
+import { LoginForm } from "@/components/LoginForm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Anmelden · bada bup" };
@@ -53,40 +53,7 @@ export default async function AnmeldenPage() {
         6-stelligen Code (kein Passwort nötig).
       </p>
 
-      <form
-        action={async (formData: FormData) => {
-          "use server";
-          const email = String(formData.get("email") ?? "");
-          (await cookies()).set(LOGIN_EMAIL_COOKIE, email, {
-            httpOnly: true,
-            sameSite: "lax",
-            path: "/",
-            maxAge: 60 * 15,
-          });
-          await signIn("resend", { email });
-        }}
-        className="mt-4 space-y-3"
-      >
-        <input
-          type="email"
-          name="email"
-          id="email"
-          required
-          autoComplete="email"
-          inputMode="email"
-          autoCapitalize="none"
-          autoCorrect="off"
-          spellCheck={false}
-          placeholder="name@beispiel.at"
-          className="w-full rounded-md border border-border-soft bg-white px-3 py-2 text-sm focus:border-kobalt focus:outline-none focus:ring-1 focus:ring-kobalt"
-        />
-        <button
-          type="submit"
-          className="w-full rounded-md bg-kobalt px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-        >
-          Code senden
-        </button>
-      </form>
+      <LoginForm />
 
       <p className="mt-4 text-sm">
         Noch keinen Zugang?{" "}

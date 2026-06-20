@@ -13,7 +13,12 @@ import {
   PENDING_NAME_COOKIE,
   LOGIN_EMAIL_COOKIE,
 } from "@/auth";
-import { getCurrentUser, SEED_USERS, USER_COOKIE } from "@/lib/users";
+import {
+  getCurrentUser,
+  SEED_USERS,
+  USER_COOKIE,
+  TEST_ACCESS_COOKIE,
+} from "@/lib/users";
 import {
   createAnswerSchema,
   createPostSchema,
@@ -396,26 +401,67 @@ export async function requestAccess(
   });
 
   try {
-    // Ohne redirectTo: Auth.js leitet auf die konfigurierte verifyRequest-Seite
-    // (/anmelden/code) weiter.
-    await signIn("resend", { email });
+    await signIn("resend", { email, redirect: false });
   } catch (err) {
-    // Erfolg löst eine Weiterleitung (NEXT_REDIRECT) aus — die nicht abfangen.
-    if (
-      err &&
-      typeof err === "object" &&
-      "digest" in err &&
-      String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT")
-    ) {
-      throw err;
-    }
     console.error("requestAccess: signIn(resend) fehlgeschlagen:", err);
     return {
       error:
         "Der Bestätigungs-Code konnte gerade nicht gesendet werden. Bitte versuche es später erneut oder wende dich an den Admin.",
     };
   }
-  return {};
+  redirect("/anmelden/code");
+}
+
+// Anmelden: Test-Passwort → fester Test-User, sonst E-Mail → Code senden.
+// Fehler beim Versand werden abgefangen (kein 500).
+export async function loginRequest(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const value = String(formData.get("email") ?? "").trim();
+  if (!value) return { error: "Bitte E-Mail-Adresse eingeben." };
+
+  const cookieStore = await cookies();
+
+  // Zwischenlösung: Test-Passwort statt E-Mail → fester Test-User.
+  if (
+    process.env.TEST_ACCESS_PASSWORD &&
+    value === process.env.TEST_ACCESS_PASSWORD
+  ) {
+    cookieStore.set(TEST_ACCESS_COOKIE, value, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    redirect("/");
+  }
+
+  cookieStore.set(LOGIN_EMAIL_COOKIE, value, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 15,
+  });
+
+  try {
+    // redirect:false → Auth.js leitet NICHT selbst (sonst /api/auth/verify-request);
+    // wir gehen gezielt zur Code-Eingabe.
+    await signIn("resend", { email: value, redirect: false });
+  } catch (err) {
+    console.error("loginRequest: signIn(resend) fehlgeschlagen:", err);
+    return {
+      error:
+        "Der Code konnte gerade nicht gesendet werden. Bitte später erneut versuchen.",
+    };
+  }
+  redirect("/anmelden/code");
+}
+
+// Test-Modus verlassen (Zwischenlösung): Geheim-Cookie löschen.
+export async function testSignOut(): Promise<void> {
+  (await cookies()).delete(TEST_ACCESS_COOKIE);
+  redirect("/anmelden");
 }
 
 // Nutzer-Umschalter (nur bis zum echten Login).

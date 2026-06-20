@@ -16,9 +16,15 @@ import { UserMenu } from "@/components/UserMenu";
 import { InfoMenu } from "@/components/InfoMenu";
 import { Onboarding } from "@/components/Onboarding";
 import { ComposeBar } from "@/components/ComposeBar";
-import { getCurrentUser, getSessionUser, SEED_USERS } from "@/lib/users";
+import {
+  getCurrentUser,
+  getSessionUser,
+  SEED_USERS,
+  TEST_USER_ID,
+} from "@/lib/users";
 import { getLabels } from "@/lib/labels";
 import { prisma } from "@/lib/prisma";
+import { testSignOut } from "@/lib/actions";
 import { signOut } from "@/auth";
 import "./globals.css";
 
@@ -107,6 +113,19 @@ export default async function RootLayout({
                       admin={sessionUser.admin}
                       unread={unread}
                       onSignOut={signOutAction}
+                    />
+                  </div>
+                ) : current && current.id === TEST_USER_ID ? (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="rounded-full bg-diverg-bg px-2 py-0.5 text-xs text-diverg-fg">
+                      Testzugang
+                    </span>
+                    <InfoMenu />
+                    <UserMenu
+                      user={{ id: current.id, name: current.name }}
+                      admin={current.admin}
+                      unread={unread}
+                      onSignOut={testSignOut}
                     />
                   </div>
                 ) : current ? (
