@@ -14,7 +14,7 @@ function SaveButton() {
       disabled={pending}
       className="rounded-md bg-kobalt px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
     >
-      {pending ? "Speichert …" : "Name speichern"}
+      {pending ? "Speichert …" : "Username speichern"}
     </button>
   );
 }
@@ -26,7 +26,7 @@ export function ProfileForm({ currentName }: { currentName: string }) {
     <form action={action} className="mt-4 space-y-3">
       <div>
         <label htmlFor="name" className="block text-sm font-medium">
-          Angezeigter Name
+          Username
         </label>
         <input
           id="name"

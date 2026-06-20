@@ -18,7 +18,7 @@ export default async function ProfilPage() {
       </Link>
       <h1 className="mt-2 text-xl font-semibold">Profil</h1>
       <p className="mt-2 text-sm text-muted">
-        Dein Name ist überall sichtbar — Antworten sind immer namentlich.
+        Dein Username ist überall sichtbar — Antworten sind immer namentlich.
       </p>
 
       <ProfileForm currentName={me.name} />

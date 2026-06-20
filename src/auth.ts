@@ -21,6 +21,14 @@ async function sendCodeEmail(params: {
 }) {
   const { identifier: email, url, token } = params;
   const from = process.env.EMAIL_FROM ?? "bada bup <onboarding@resend.dev>";
+
+  // Dev-Fallback: ohne Resend-Key den Code ins Server-Log schreiben, statt zu
+  // scheitern — so ist Login/Registrierung lokal ohne E-Mail-Versand testbar.
+  if (!process.env.AUTH_RESEND_KEY) {
+    console.log(`\n[DEV] Anmelde-Code für ${email}: ${token}\n(Link: ${url})\n`);
+    return;
+  }
+
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {

@@ -7,7 +7,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { signOut } from "@/auth";
+import {
+  signIn,
+  signOut,
+  PENDING_NAME_COOKIE,
+  LOGIN_EMAIL_COOKIE,
+} from "@/auth";
 import { getCurrentUser, SEED_USERS, USER_COOKIE } from "@/lib/users";
 import {
   createAnswerSchema,
@@ -363,6 +368,54 @@ export async function sendAdminMessage(
 
   await prisma.adminMessage.create({ data: { body, senderId: me.id } });
   return { ok: true };
+}
+
+// Zugang anfragen (Registrierung): Name (Cookie) + E-Mail → Code senden.
+// Fehler beim Versand werden abgefangen und freundlich zurückgegeben (kein 500).
+export async function requestAccess(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  if (name.length < 2) return { error: "Bitte gib einen Username ein." };
+  if (!email) return { error: "Bitte gib eine E-Mail-Adresse ein." };
+
+  const cookieStore = await cookies();
+  cookieStore.set(PENDING_NAME_COOKIE, name, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 30,
+  });
+  cookieStore.set(LOGIN_EMAIL_COOKIE, email, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 15,
+  });
+
+  try {
+    // Ohne redirectTo: Auth.js leitet auf die konfigurierte verifyRequest-Seite
+    // (/anmelden/code) weiter.
+    await signIn("resend", { email });
+  } catch (err) {
+    // Erfolg löst eine Weiterleitung (NEXT_REDIRECT) aus — die nicht abfangen.
+    if (
+      err &&
+      typeof err === "object" &&
+      "digest" in err &&
+      String((err as { digest?: unknown }).digest).startsWith("NEXT_REDIRECT")
+    ) {
+      throw err;
+    }
+    console.error("requestAccess: signIn(resend) fehlgeschlagen:", err);
+    return {
+      error:
+        "Der Bestätigungs-Code konnte gerade nicht gesendet werden. Bitte versuche es später erneut oder wende dich an den Admin.",
+    };
+  }
+  return {};
 }
 
 // Nutzer-Umschalter (nur bis zum echten Login).
