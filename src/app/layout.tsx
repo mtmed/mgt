@@ -1,15 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk } from "next/font/google";
 import Link from "next/link";
 import { cookies } from "next/headers";
 
-// Self-hosted (Next lädt die Schrift zur Build-Zeit, kein Client-Request an Google).
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-space-grotesk",
-  display: "swap",
-});
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { UserSwitcher } from "@/components/UserSwitcher";
 import { UserMenu } from "@/components/UserMenu";
@@ -71,7 +63,7 @@ export default async function RootLayout({
   const kodexAccepted = cookieStore.get("kodex_ack")?.value === "1";
 
   return (
-    <html lang="de" className={`h-full antialiased ${spaceGrotesk.variable}`}>
+    <html lang="de" className="h-full antialiased">
       <body className="flex min-h-full flex-col">
         <ServiceWorkerRegister />
 
