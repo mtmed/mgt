@@ -35,8 +35,10 @@
   --color-safe-bd: #cde6d8;
   --color-safe-fg: #2f7d5b;
 
-  --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui,
-    -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* System-Font-Stack (DESIGN_DECISIONS.md §2) — offline-/build-robust,
+     datensparsam, kein Google-Fonts-Abruf aus dem Browser der Mitglieder. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
 }
 
 body {
@@ -48,6 +50,37 @@ body {
 /* Weiche Erwärmung der Fläche beim Wechsel ins Pause-Register (§3). */
 .surface-transition {
   transition: background-color 0.5s ease;
+}
+
+/* Landing-Hintergrund: unscharfes App-Video, entsättigt-warm. `scale` deckt die
+   durch die Unschärfe ausgefransten Ränder ab. */
+.landing-bg-video {
+  filter: blur(11px) saturate(1.32) brightness(0.99) contrast(1.04);
+  transform: scale(1.1);
+  transform-origin: center;
+}
+
+/* Sehr leichter Creme-Schleier — die App scheint kräftig durch (Karten, Farben,
+   Bewegung); die Karte sichert die Lesbarkeit. Kein Gelb (§2). */
+.landing-scrim {
+  background: linear-gradient(
+    180deg,
+    rgba(251, 246, 236, 0.14) 0%,
+    rgba(251, 246, 236, 0.26) 55%,
+    rgba(251, 246, 236, 0.46) 100%
+  );
+}
+
+/* Energiesparen/Barrierefreiheit: kein Bewegtbild → vorab unscharfes Poster. */
+@media (prefers-reduced-motion: reduce) {
+  .landing-bg-video {
+    display: none;
+  }
+  .landing-bg {
+    background-image: url("/landing-bg-poster.jpg");
+    background-size: cover;
+    background-position: center;
+  }
 }
 
 /* Dezente Übergänge & taktiles Feedback — nur wenn nicht reduziert gewünscht. */
